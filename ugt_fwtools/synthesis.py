@@ -12,6 +12,7 @@ from typing import Dict, List
 
 from . import utils
 from .xmlmenu import XmlMenu
+from .__init__ import __version__
 
 BoardAliases: Dict[str, str] = {
     "mp7xe_690": "xe",
@@ -169,6 +170,9 @@ def write_build_config(filename: str, args) -> None:
 
     config.add_section("vivado")
     config.set("vivado", "version", args.vivado)
+
+    config.add_section("fwtools")
+    config.set("fwtools", "version", __version__)
 
     config.add_section("firmware")
     config.set("firmware", "ipburl", args.ipburl)
