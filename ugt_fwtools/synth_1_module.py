@@ -1,7 +1,6 @@
 import re
 import argparse
 import configparser
-import logging
 import os
 import subprocess
 import shutil

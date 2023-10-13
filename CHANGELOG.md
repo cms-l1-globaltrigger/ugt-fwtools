@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - fwtools version to build configuration file (synthesis.py)
-- used logger instead of logging (synthesis.py)
+- used utils.get_colored_logger (in synthesis.py and fwpacker.py)
 
 ## [0.2.0] - 2023-10-10
 
