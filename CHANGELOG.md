@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2023-10-12
+## [0.3.0] - 2023-10-13
 
 ### Added
-- fwtools version to build configuration file
+- fwtools version to build configuration file (synthesis.py)
+- used logger instead of logging (synthesis.py)
 
 ## [0.2.0] - 2023-10-10
 
