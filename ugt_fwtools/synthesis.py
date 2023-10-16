@@ -11,7 +11,7 @@ from typing import Dict, List
 
 from . import utils
 from .xmlmenu import XmlMenu
-from .__init__ import __version__
+from . import __version__
 
 logger = utils.get_colored_logger(__name__)
 
