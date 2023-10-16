@@ -30,6 +30,7 @@ import time
 
 from getpass import getuser  # for username
 from socket import gethostname  # for machines hostname
+from . import utils
 
 # Set application name (script file name).
 name = os.path.basename(__file__)
@@ -89,9 +90,11 @@ def parse_args():
 def main():
     args = parse_args()
 
+    logger = utils.get_colored_logger(__name__)
+    
     if os.path.abspath(args.src) == os.path.abspath(args.dest):
-        print("for safety reasons it is not allowed to overwrite the source template.")
-        sys.exit(1)
+        logger.error("for safety reasons it is not allowed to overwrite the source template")
+        raise RuntimeError("source template exists")
 
     replace_map = {
         "{{IPBUS_TIMESTAMP}}": hex_timestamp(args.timestamp),

@@ -15,11 +15,6 @@ from collections import namedtuple
 from typing import Dict, List
 from . import utils
 
-## TTY color sequences
-#ColorWhiteRed = "\033[37;41;1m"
-#ColorYellowWhite = "\033[43;37;1m"
-#ColorReset = "\033[0m"
-
 UtilizationRow = namedtuple("UtilizationRow", "site_type, used, fixed, prohibited, available, percent")
 """Tuple holding utilization information."""
 
@@ -28,38 +23,6 @@ def parse_utilization(line: str) -> UtilizationRow:
     """Simple parser to read a single row from a utilization report table."""
     cols = [col.strip() for col in line.split("|")][1:-1]
     return UtilizationRow(*cols)
-
-
-#class Logger:
-    #"""Custom message logger."""
-
-    #def __init__(self) -> None:
-        #self.messages: List[str] = []
-
-    #def info(self, message: str) -> None:
-        #self.messages.append(message)
-        #print(message)
-
-    #def warning(self, message: str) -> None:
-        #self.messages.append(message)
-        ## Apply TTY colors
-        #if sys.stdout.isatty():
-            #message = f"{ColorYellowWhite}{message}{ColorReset}"
-        #print(message)
-
-    #def error(self, message: str) -> None:
-        #self.messages.append(message)
-        ## Apply TTY colors
-        #if sys.stdout.isatty():
-            #message = f"{ColorWhiteRed}{message}{ColorReset}"
-        #print(message)
-
-    #def hr(self, pattern: str) -> None:
-        #"""Print horizontal line to logger."""
-        ## TTY size
-        #with os.popen("stty size") as fp:
-            #o, ts = fp.read().split()
-        #self.info(pattern * int(ts))
 
 
 class Analyzer:
@@ -75,6 +38,7 @@ class Analyzer:
         self.show_errors = False
         self.show_warnings = False
         self.show_violations = False
+        self.messages: List[str] = []
 
     def find_errors(self, module_path: str, module_id: int) -> None:
         """Parse log files."""
@@ -96,6 +60,14 @@ class Analyzer:
         runme_log_synth = os.path.join(synth_path, "runme.log")
         runme_log_impl = os.path.join(impl_path, "runme.log")
 
+        if not os.path.isfile(runme_log_synth):
+            self.logger.error(f"no such file {runme_log_synth!r}")        
+            raise RuntimeError(f"missing {runme_log_synth!r}")
+
+        if not os.path.isfile(runme_log_impl):
+            self.logger.error(f"no such file {runme_log_impl!r}")        
+            raise RuntimeError(f"missing {runme_log_impl!r}")
+        
         self.logger.info("===========================================================================")
         self.logger.info(f"Module #{module_id}")
         self.logger.info("===========================================================================")
@@ -197,15 +169,19 @@ class Analyzer:
 
         message = f"ERRORS: {errors}"
         self.logger.error(message) if errors else self.logger.info(message)
+        self.messages.append(message) if errors else None
 
         message = f"WARNINGS: {warnings}"
         self.logger.warning(message) if warnings else self.logger.info(message)
+        self.messages.append(message) if warnings else None
 
         message = f"CRITICAL WARNINGS: {crit_warnings}"
-        self.logger.warning(message) if crit_warnings else self.logger.info(message)
+        self.logger.critical(message) if crit_warnings else self.logger.info(message)
+        self.messages.append(message) if crit_warnings else None
 
         message = f"VIOLATED: {violated_counts}"
         self.logger.error(message) if violated_counts else self.logger.info(message)
+        self.messages.append(message) if violated_counts else None
 
         self.get_utilization(impl_path, module_id)
         self.check_bitfile(os.path.join(module_path, "products"), module_id)
@@ -264,11 +240,11 @@ class Analyzer:
         self.logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         self.logger.info("")
 
-    #def write_logifle(self, filename: str) -> None:
-        #with open(os.path.abspath(filename), "w+") as fp:
-            #for message in self.logger.messages:
-                #fp.write(message)
-                #fp.write(os.linesep)
+    def write_logifle(self, filename: str) -> None:
+        with open(os.path.abspath(filename), "w+") as fp:
+            for message in self.messages:
+                fp.write(message)
+                fp.write(os.linesep)
 
 
 def parse_args() -> argparse.Namespace:
