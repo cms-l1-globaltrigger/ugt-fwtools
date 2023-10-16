@@ -13,11 +13,12 @@ import sys
 
 from collections import namedtuple
 from typing import Dict, List
+from . import utils
 
-# TTY color sequences
-ColorWhiteRed = "\033[37;41;1m"
-ColorYellowWhite = "\033[43;37;1m"
-ColorReset = "\033[0m"
+## TTY color sequences
+#ColorWhiteRed = "\033[37;41;1m"
+#ColorYellowWhite = "\033[43;37;1m"
+#ColorReset = "\033[0m"
 
 UtilizationRow = namedtuple("UtilizationRow", "site_type, used, fixed, prohibited, available, percent")
 """Tuple holding utilization information."""
@@ -29,43 +30,44 @@ def parse_utilization(line: str) -> UtilizationRow:
     return UtilizationRow(*cols)
 
 
-class Logger:
-    """Custom message logger."""
+#class Logger:
+    #"""Custom message logger."""
 
-    def __init__(self) -> None:
-        self.messages: List[str] = []
+    #def __init__(self) -> None:
+        #self.messages: List[str] = []
 
-    def info(self, message: str) -> None:
-        self.messages.append(message)
-        print(message)
+    #def info(self, message: str) -> None:
+        #self.messages.append(message)
+        #print(message)
 
-    def warning(self, message: str) -> None:
-        self.messages.append(message)
-        # Apply TTY colors
-        if sys.stdout.isatty():
-            message = f"{ColorYellowWhite}{message}{ColorReset}"
-        print(message)
+    #def warning(self, message: str) -> None:
+        #self.messages.append(message)
+        ## Apply TTY colors
+        #if sys.stdout.isatty():
+            #message = f"{ColorYellowWhite}{message}{ColorReset}"
+        #print(message)
 
-    def error(self, message: str) -> None:
-        self.messages.append(message)
-        # Apply TTY colors
-        if sys.stdout.isatty():
-            message = f"{ColorWhiteRed}{message}{ColorReset}"
-        print(message)
+    #def error(self, message: str) -> None:
+        #self.messages.append(message)
+        ## Apply TTY colors
+        #if sys.stdout.isatty():
+            #message = f"{ColorWhiteRed}{message}{ColorReset}"
+        #print(message)
 
-    def hr(self, pattern: str) -> None:
-        """Print horizontal line to logger."""
-        # TTY size
-        with os.popen("stty size") as fp:
-            o, ts = fp.read().split()
-        self.info(pattern * int(ts))
+    #def hr(self, pattern: str) -> None:
+        #"""Print horizontal line to logger."""
+        ## TTY size
+        #with os.popen("stty size") as fp:
+            #o, ts = fp.read().split()
+        #self.info(pattern * int(ts))
 
 
 class Analyzer:
     """Synthesis log file analyzer."""
 
     def __init__(self) -> None:
-        self.logger: Logger = Logger()
+        #self.logger: Logger = Logger()
+        self.logger: Logger = utils.get_colored_logger(__name__)
         self.utilization: Dict[int, List[UtilizationRow]] = {}
         # Options
         self.show_all = False
@@ -94,9 +96,9 @@ class Analyzer:
         runme_log_synth = os.path.join(synth_path, "runme.log")
         runme_log_impl = os.path.join(impl_path, "runme.log")
 
-        self.logger.hr("=")
+        self.logger.info("===========================================================================")
         self.logger.info(f"Module #{module_id}")
-        self.logger.hr("=")
+        self.logger.info("===========================================================================")
         self.logger.info("")
 
         # opens file as .log
@@ -108,25 +110,25 @@ class Analyzer:
                     errors += 1
                     # checks for args if -a or -e is an arg print error line
                     if self.show_all or self.show_errors:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                 # checks in current line if warning is at the beginning
                 elif line.startswith("WARNING"):
                     warnings += 1
                     # checks for args if -a or -w is an arg print warning line
                     if self.show_all or self.show_warnings:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                 # checks in current line if critical warning is at the beginning
                 elif line.startswith("CRITICAL WARNING"):
                     crit_warnings += 1
                     # checks for args if -a or -c is an arg print critical warning line
                     if self.show_all or self.show_criticals:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
 
         # opens file as .log
         with open(runme_log_impl, "rt") as fp:
@@ -137,25 +139,25 @@ class Analyzer:
                     errors += 1
                     # checks for args if -a or -e is an arg print error line
                     if self.show_all or self.show_errors:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                 # checks in current line if warning is at the beginning
                 elif line.startswith("WARNING"):
                     warnings += 1
                     # checks for args if -a or -w is an arg print warning line
                     if self.show_all or self.show_warnings:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                 # checks in current line if critical warning is at the beginning
                 elif line.startswith("CRITICAL WARNING"):
                     crit_warnings += 1
                     # checks for args if -a or -c is an arg print critical warning line
                     if self.show_all or self.show_criticals:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line)
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
 
         #
         # Parse timing summary\
@@ -183,15 +185,15 @@ class Analyzer:
                     violated_counts += 1
                     # checks args for -v and -a
                     if self.show_all or self.show_violations:
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
                         self.logger.info(line.strip(os.linesep))
                         additional_lines = 4
                         for _ in range(additional_lines):
                             self.logger.info(fp.readline().strip(os.linesep))
-                        self.logger.hr("-")
+                        self.logger.info("---------------------------------------------------------------------------")
 
         # outputs sum of errors warnings and critical warnings if any accured it gets painted in color
-        self.logger.hr("#")
+        self.logger.info("###########################################################################")
 
         message = f"ERRORS: {errors}"
         self.logger.error(message) if errors else self.logger.info(message)
@@ -208,7 +210,7 @@ class Analyzer:
         self.get_utilization(impl_path, module_id)
         self.check_bitfile(os.path.join(module_path, "products"), module_id)
 
-        self.logger.hr("#")
+        self.logger.info("###########################################################################")
         self.logger.info("")
 
     def get_utilization(self, impl_path, module_id):
@@ -262,11 +264,11 @@ class Analyzer:
         self.logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         self.logger.info("")
 
-    def write_logifle(self, filename: str) -> None:
-        with open(os.path.abspath(filename), "w+") as fp:
-            for message in self.logger.messages:
-                fp.write(message)
-                fp.write(os.linesep)
+    #def write_logifle(self, filename: str) -> None:
+        #with open(os.path.abspath(filename), "w+") as fp:
+            #for message in self.logger.messages:
+                #fp.write(message)
+                #fp.write(os.linesep)
 
 
 def parse_args() -> argparse.Namespace:
