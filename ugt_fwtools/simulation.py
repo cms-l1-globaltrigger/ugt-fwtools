@@ -19,6 +19,8 @@ from typing import List
 from . import utils
 from .xmlmenu import XmlMenu
 
+logger = utils.get_colored_logger(__name__)
+
 IGNORED_ALGOS = [
     "L1_FirstBunchInTrain",
     "L1_SecondBunchInTrain"
@@ -85,11 +87,11 @@ def render_template(src, dst, args):
     """Replaces content of file *src* with values of dictionary *args* and writes to file *dst*.
     >>> render_template("template.txt", "sample.txt", { 'foo' : "bar", })
     """
-    logging.debug("rendering template %s as %s", src, dst)
+    logger.debug("rendering template %s as %s", src, dst)
     with open(src) as f:
         content = f.read()
     for needle, subst in list(args.items()):
-        logging.debug("  replacing %r by %r", needle, subst)
+        logger.debug("  replacing %r by %r", needle, subst)
         content = content.replace(needle, subst)
     with open(dst, "wt") as dst:
         dst.write(content)
@@ -132,10 +134,10 @@ def run_vsim(vsim, module, msgmode, ini_file):
     vsim_bin = os.path.join(vsim, "bin", "vsim")
     with open(module.results_log, "wt") as logfile:
         cmd = [vsim_bin, "-lic_noqueue", "-c", "-msgmode", msgmode, "-modelsimini", ini_file, "-do", "do {filename}; quit -f".format(filename=os.path.join(module.path, DO_FILE))]
-        logging.info("starting simulation for module_%d...", module.id)
-        logging.info("executing: %s", " ".join(['"{0}"'.format(arg) if " " in str(arg) else str(arg) for arg in cmd]))
+        logger.info("starting simulation for module_%d...", module.id)
+        logger.info("executing: %s", " ".join(['"{0}"'.format(arg) if " " in str(arg) else str(arg) for arg in cmd]))
         subprocess.run(cmd, stdout=logfile).check_returncode()
-        logging.info(f"simulation done.")
+        logger.info(f"simulation done.")
 
     # checks for the json file
     t0 = time.monotonic()
@@ -160,7 +162,7 @@ def run_vsim(vsim, module, msgmode, ini_file):
 
             algos_sim_bin = bitfield(int(error["algos_sim"], 16), max_algorithms)
             algos_tv_bin = bitfield(int(error["algos_tv"], 16), max_algorithms)
-            logging.debug("-" * ts)
+            logger.debug("-" * ts)
 
             for bit in range(max_algorithms):
                 if algos_tv_bin[bit] != algos_sim_bin[bit]:
@@ -175,7 +177,7 @@ def run_vsim(vsim, module, msgmode, ini_file):
                         results_txt.write(f"algo with index: {bit} not found in menu\n")
                         results_txt.write("\n")
 
-        logging.info("finished simulating module_{}".format(module.id))
+        logger.info("finished simulating module_{}".format(module.id))
 
 
 def check_algocount(liste):
@@ -194,12 +196,6 @@ def check_algocount(liste):
 def check_multiple(liste):
     """checks if multiple triggers in list"""
     return True if len(liste) > 1 else False
-
-
-def logging_debug_write(textfile, string):
-    """output into textfile and if logging.debug true prints on screen"""
-    textfile.write(string + "\n")
-    logging.debug(string)
 
 
 class Module(object):
@@ -295,11 +291,11 @@ def download_file_from_url(url, filename):
     # Remove existing file.
     utils.remove(filename)
     # Download file
-    logging.info("retrieving %s", url)
+    logger.info("retrieving %s", url)
     urllib.request.urlretrieve(url, filename)
 
 
-def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a_url_menu, a_ipb_fw_url, a_ipb_fw_tag, a_questasimlibs, a_output, a_view_wave, a_wlf, a_verbose, a_tv, a_ignored):
+def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a_url_menu, a_ipb_fw_url, a_ipb_fw_tag, a_questasimlibs, a_output, a_view_wave, a_wlf, a_tv, a_ignored):
 
     sim_dir = os.path.join(project_dir, "firmware", "sim")
 
@@ -308,7 +304,7 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
     dest_filename = os.path.join(sim_dir, "modelsim.ini")
     shutil.copyfile(source_filename, dest_filename)
 
-    # using SIM_ROOT dir as default output path
+    # Using SIM_ROOT dir as default output path
     if not a_output:
         a_output = sim_dir
 
@@ -317,15 +313,15 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
     # tran => output to console.
     msgmode = "wlf" if a_wlf else "tran"
 
-    logging.info("===========================================================================")
-    logging.info("clone repos of MP7 and IPB-firmware to %r ...", sim_area)
+    logger.info("===========================================================================")
+    logger.info("clone repos of MP7 and IPB-firmware to %r ...", sim_area)
 
-    # clone repos of MP7 and IPB-firmware to sim_area
+    # Clone repos of MP7 and IPB-firmware to sim_area
     subprocess.run(["git", "clone", a_mp7_url, "-b", a_mp7_tag, "mp7"], cwd=sim_area).check_returncode()
     subprocess.run(["git", "clone", a_ipb_fw_url, "-b", a_ipb_fw_tag, "ipbus-firmware"], cwd=sim_area).check_returncode()
 
-    logging.info("===========================================================================")
-    logging.info("download XML and testvector file from L1Menu repository ...")
+    logger.info("===========================================================================")
+    logger.info("download XML and testvector file from L1Menu repository ...")
     # Get l1menus_path for URL
     xml_name = "{}{}".format(a_menu, ".xml")
     menu_filepath = os.path.join(sim_area, xml_name)
@@ -345,7 +341,6 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
         tv_name = "{}{}".format(tv_name, ".txt")
 
     testvector_filepath = os.path.join(sim_area, tv_name)
-    #shutil.copyfile(a_tv, testvector_filepath)
 
     tv_split_0 = a_tv.split("/")[0]
     if tv_split_0 == "https:":
@@ -389,7 +384,7 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
     ini_file = os.path.join(sim_dir, INI_FILE)
 
-    logging.info("creating Modules and Masks...")
+    logger.info("creating Modules and Masks...")
 
     for module in modules:  # gives each module the information
         module_id = f"module_{module.id:d}"
@@ -398,11 +393,11 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
         os.makedirs(os.path.join(module.path, "testbench"))
         os.makedirs(os.path.join(module.path, "vhdl"))
-        logging.debug("Module_%d: %0128x", module.id, module.get_mask())
+        logger.debug("Module_%d: %0128x", module.id, module.get_mask())
 
         write_testvector(module.get_mask(), testvector_filepath, module.testvector_filepath)  # mask, testvectorfile, out_dir
 
-        logging.debug("Module_%d created at %s", module.id, base_dir)
+        logger.debug("Module_%d created at %s", module.id, base_dir)
 
         mp7 = os.path.join(sim_area, "mp7")
         ipb_fw = os.path.join(sim_area, "ipbus-firmware")
@@ -411,9 +406,9 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
     questasim_path = os.path.join(QuestaSimPath, "questasim")
 
-    logging.info("finished creating Modules and Masks")
-    logging.info("===========================================================================")
-    logging.info("starting simulations with Questa Simulator from directory %s", questasim_path)
+    logger.info("finished creating Modules and Masks")
+    logger.info("===========================================================================")
+    logger.info("starting simulations with Questa Simulator from directory %s", questasim_path)
 
     threads = []
     for module in modules:  # makes for all simulations a thread
@@ -431,7 +426,7 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
     for thread in threads:  # waits for all threads to finish
         thread.join()
-    logging.info("finished all simulations")
+    logger.info("finished all simulations")
     print()
 
     algos_sim = {}
@@ -462,24 +457,16 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
     for index in range(len(algos_tv)):
         algos_tv[index] = check_algocount(algos_tv[index])
 
-    # Summary logging
-    sum_log = logging.getLogger("sum_log")
-    sum_log.propagate = False
-    handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setFormatter(logging.Formatter(fmt="%(message)s"))
-    handler.setLevel(logging.DEBUG)
-    sum_log.addHandler(handler)
-
     sum_file = os.path.join(base_dir, "summary.txt")
     handler = logging.FileHandler(sum_file, mode="w")
     handler.setFormatter(logging.Formatter(fmt="%(message)s"))
     handler.setLevel(logging.DEBUG)
-    sum_log.addHandler(handler)
+    logger.addHandler(handler)
 
-    sum_log.info("Test vector file name: {}".format(tv_name))
-    sum_log.info("|-----|-----|------------------------------------------------------------------|--------|--------|--------|")
-    sum_log.info("| Mod | Idx | Name of algorithm                                                | l1a.tv | l1a.hw | Result |")
-    sum_log.info("|-----|-----|------------------------------------------------------------------|--------|--------|--------|")
+    logger.info("Test vector file name: {}".format(tv_name))
+    logger.info(" |-----|-----|------------------------------------------------------------------|--------|--------|--------|")
+    logger.info(" | Mod | Idx | Name of algorithm                                                | l1a.tv | l1a.hw | Result |")
+    logger.info(" |-----|-----|------------------------------------------------------------------|--------|--------|--------|")
     #      |   1 |   0 | L1_SingleMuCosmics                                               |    86  |     0  | ERROR  |
 
     algorithms = sorted(menu.algorithms, key=lambda algorithm: algorithm.index)  # sorts all algorithms by index number
@@ -488,25 +475,39 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
     ignored_algos = []
     for algo in algorithms:
         result = ok_green
+        err_stat = False
         if algo.name in IGNORED_ALGOS and a_ignored:
             result = ignore_yellow
             ignored_algos.append(algo.index)
         # checks if algorithm trigger count is equal in both hardware and testvectors
         elif algos_tv[algo.index][0][1] != algos_sim[algo.index][0][1]:
+            err_stat = True
             err_cnt=err_cnt+1
             result = error_red
             success = False
 
-        sum_log.info("|{:>5}|{:>5}|{:<66}|{:>8}|{:>8}|{:>8}|".format(   # prints line with information about each algo present in the menu
-            algo.module_id,
-            algo.index,
-            algo.name,
-            algos_tv[algo.index][0][1],
-            algos_sim[algo.index][0][1],
-            result
-        ))
+        if err_stat:
+            logger.error("|{:>5}|{:>5}|{:<66}|{:>8}|{:>8}|{:>8}|".format(   # prints line with mismatches
+                algo.module_id,
+                algo.index,
+                algo.name,
+                algos_tv[algo.index][0][1],
+                algos_sim[algo.index][0][1],
+                result
+            ))
+        else:
+            logger.info(" |{:>5}|{:>5}|{:<66}|{:>8}|{:>8}|{:>8}|".format(   # prints line with information about each algo present in the menu
+                algo.module_id,
+                algo.index,
+                algo.name,
+                algos_tv[algo.index][0][1],
+                algos_sim[algo.index][0][1],
+                result
+            ))
+  
+    logger.info(" |-----|-----|------------------------------------------------------------------|--------|--------|--------|")
 
-    sum_log.info("|-----|-----|------------------------------------------------------------------|--------|--------|--------|")
+    logger.removeHandler(handler)
 
     json_err_msg = True
     for i, jsonf in error_jsonf.items():
@@ -517,9 +518,9 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
                     if entry["algo_tv"] != entry["algo_sim"]:
                         error_count += 1
             if error_count:
-                sum_log.info(f"\033[1;31m ERROR: {error_count} mismatches of algos or finor @ certain bx-nr in: \033[0m ")
+                logger.error(f"{error_count} mismatches of algos or finor @ certain bx-nr in:")
                 json_file = os.path.join(base_dir, "module_{}", "results_module_{}.json").format(i, i)
-                sum_log.info("\033[1;31m {} \033[0m ".format(json_file))
+                logger.error(f"{json_file}")
                 json_err_msg = False
     trigger_liste = trigger_list(testvector_filepath)  # gets a list: index is algorithm index and content is the trigger count in the testvector file
 
@@ -532,52 +533,51 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
     if errors:
         success = False
-        sum_log.info("")
-        sum_log.info("Found triggers which are not defined in the menu")
-        sum_log.info("|-------|--------|")
-        sum_log.info("| Index |triggers|")
-        sum_log.info("|-------|--------|")
+        logger.info("")
+        logger.error("Found triggers which are not defined in the menu")
+        logger.info("|-------|--------|")
+        logger.info("| Index |triggers|")
+        logger.info("|-------|--------|")
         for index, triggers in errors:
-            sum_log.info("|{:>7}|{:>8}|".format(index, triggers))  # prints all algorithms witch are not in the menu but also triggert for some reason
-        sum_log.info("|-------|--------|")
+            logger.error("|{:>7}|{:>8}|".format(index, triggers))  # prints all algorithms witch are not in the menu but also triggert for some reason
+        logger.error("|-------|--------|")
 
     for index in range(len(algos_sim)):  # checks if algorithm triggert more than once in simulation and testvector file and prints it red on screen
         if check_multiple(algos_sim[index]):
-            sum_log.info("Multiple algorithms found in simulation!")
+            logger.error("Multiple algorithms found in simulation!")
             for i in range(len(algos_sim[index])):
-                sum_log.info("Module: {}".format(algos_sim[index][0][0]))
-                sum_log.info("    Index: {}".format(index))
-                sum_log.info("    algoname: {}".format(menu.algorithms.byIndex(index).name if menu.algorithms.byIndex(index).name else "not found in menu"))
+                logger.error("Module: {}".format(algos_sim[index][0][0]))
+                logger.error("    Index: {}".format(index))
+                logger.error("    Algoname: {}".format(menu.algorithms.byIndex(index).name if menu.algorithms.byIndex(index).name else "not found in menu"))
 
     for index in range(len(algos_tv)):
         if check_multiple(algos_tv[index]):
-            sum_log.info("Multiple algorithms found in testvectors!")
+            logger.error("Multiple algorithms found in testvectors!")
             for i in range(len(algos_tv[index])):
-                sum_log.info("Module: {}".format(algos_tv[index][0][0]))
-                sum_log.info("    Index: {}".format(index))
-                sum_log.info("    algoname: {}".format(menu.algorithms.byIndex(index).name if menu.algorithms.byIndex(index).name else "not found in menu"))
+                logger.error("Module: {}".format(algos_tv[index][0][0]))
+                logger.error("    Index: {}".format(index))
+                logger.error("    Algoname: {}".format(menu.algorithms.byIndex(index).name if menu.algorithms.byIndex(index).name else "not found in menu"))
 
     print()
 
     if not json_err_msg or not success:
-        logging.info(failed_red)
+        logger.error("simulation failed")
     else:
-        logging.error(success_green)
+        logger.info("success!")
 
-    logging.info("===========================================================================")
+    if not success:
+        #logger.error("mismatches occured !!! Exit on errors")
+        logger.error("===> {} error(s) occured!".format(err_cnt))
+        #logger.info("===========================================================================")
+        #exit(1)
+
+    logger.info("===========================================================================")
 
     # remove 'anomaly_detection.txt'
     cfg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "firmware", "cfg")
     adt_txt = os.path.join(cfg_dir, "anomaly_detection.txt")
     if os.path.exists(adt_txt):
         utils.remove(adt_txt)
-
-    if not success:
-        logging.info("===========================================================================")
-        logging.error(mismatches_exit_red)
-        print("\033[1;31m ===> {} error(s) occured! \033[0m".format(err_cnt))
-        logging.info("===========================================================================")
-        exit(1)
 
 
 def parse_args():
@@ -596,15 +596,18 @@ def parse_args():
     parser.add_argument("--output", metavar="path", type=os.path.abspath, help="path to output directory")
     parser.add_argument("--view_wave", action="store_true", help="shows the waveform")
     parser.add_argument("--wlf", action="store_true", help="no console transcript info, warning and error messages (transcript output to vsim.wlf)")
-    parser.add_argument("-v", "--verbose", action="store_const", const=logging.DEBUG, help="enables debug prints to console", default=logging.INFO)
+    parser.add_argument("-v", "--verbose", action="store_true", default=False, help="enables debug prints to console")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
 
-    # Setup console logging
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+    # Setup console logger
+    if args.verbose:
+    	logger.setLevel(logging.DEBUG)
+    else:    
+        logger.setLevel(logging.INFO)
 
     xml_name = args.menu_xml.split("/")[-1]
     menu = xml_name.split(".")[0]
@@ -641,13 +644,12 @@ def main():
         args.output,
         args.view_wave,
         args.wlf,
-        args.verbose,
         args.tv,
         args.ignored,
       )
     finally:
         shutil.rmtree(sim_area)
 
-
 if __name__ == "__main__":
     main()
+
