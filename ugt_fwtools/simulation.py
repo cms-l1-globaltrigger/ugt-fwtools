@@ -264,14 +264,14 @@ class Module(object):
             replace_map
         )
 
-        # Create 'anomaly_detection.txt' from 'anomaly_detection.dep'
-        adt_dep_file = os.path.join(uGTalgosPath, "cfg", "anomaly_detection.dep")
-        adt_vhd = ""
+        # Create 'axol1tl_trigger.txt' from 'axol1tl_trigger.dep'
+        axol1tl_dep_file = os.path.join(uGTalgosPath, "cfg", "axol1tl_trigger.dep")
+        axol1tl_vhd = ""
 
-        if os.path.exists(adt_dep_file):
-            with open(adt_dep_file, "rt") as fp:
-                adt_vhd = fp.read()
-            adt_vhd = adt_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
+        if os.path.exists(axol1tl_dep_file):
+            with open(axol1tl_dep_file, "rt") as fp:
+                axol1tl_vhd = fp.read()
+            axol1tl_vhd = axol1tl_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
 
         # Create 'topo_trigger.txt' from 'topo_trigger.dep'
         topo_dep_file = os.path.join(uGTalgosPath, "cfg", "topo_trigger.dep")
@@ -282,12 +282,12 @@ class Module(object):
                 topo_vhd = fp.read()
             topo_vhd = topo_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
 
-        # Insert content of 'anomaly_detection.txt' into DO_FILE
+        # Insert content of 'axol1tl_trigger.txt' into DO_FILE
         render_template(
             os.path.join(self.path, DO_FILE_TMP),
             os.path.join(self.path, DO_FILE),
             {
-                "{{adt_vhd}}": adt_vhd,
+                "{{axol1tl_vhd}}": axol1tl_vhd,
                 "{{topo_vhd}}": topo_vhd,
             }
         )
@@ -595,11 +595,11 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
 
     print()
 
-    # remove 'anomaly_detection.txt'
+    # remove 'axol1tl_trigger.txt'
     cfg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "firmware", "cfg")
-    adt_txt = os.path.join(cfg_dir, "anomaly_detection.txt")
-    if os.path.exists(adt_txt):
-        utils.remove(adt_txt)
+    axol1tl_txt = os.path.join(cfg_dir, "axol1tl_trigger.txt")
+    if os.path.exists(axol1tl_txt):
+        utils.remove(axol1tl_txt)
 
 
 def parse_args():
