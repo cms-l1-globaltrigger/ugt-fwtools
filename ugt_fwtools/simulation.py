@@ -264,6 +264,15 @@ class Module(object):
             replace_map
         )
 
+        # Create 'anomaly_detection.txt' from 'anomaly_detection.dep'
+        adt_dep_file = os.path.join(uGTalgosPath, "cfg", "anomaly_detection.dep")
+        adt_vhd = ""
+
+        if os.path.exists(adt_dep_file):
+            with open(adt_dep_file, "rt") as fp:
+                adt_vhd = fp.read()
+            adt_vhd = adt_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
+
         # Create 'axol1tl_trigger.txt' from 'axol1tl_trigger.dep'
         axol1tl_dep_file = os.path.join(uGTalgosPath, "cfg", "axol1tl_trigger.dep")
         axol1tl_vhd = ""
@@ -282,11 +291,12 @@ class Module(object):
                 topo_vhd = fp.read()
             topo_vhd = topo_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
 
-        # Insert content of 'axol1tl_trigger.txt' into DO_FILE
+        # Insert content of 'anomaly_detection.dep', 'axol1tl_trigger.dep' and 'topo_trigger.dep' into DO_FILE
         render_template(
             os.path.join(self.path, DO_FILE_TMP),
             os.path.join(self.path, DO_FILE),
             {
+                "{{adt_vhd}}": adt_vhd,
                 "{{axol1tl_vhd}}": axol1tl_vhd,
                 "{{topo_vhd}}": topo_vhd,
             }
