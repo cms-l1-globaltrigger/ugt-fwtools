@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.0] - 2024-02-08
+## [0.6.0] - 2024-03-15
 
 ### Changed
 - script simulation.py for axol1tl
+- script build_report.py (to get tmEventSetup version correctly)
 
 ## [0.5.0] - 2024-01-02
 
