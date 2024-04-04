@@ -1,10 +1,12 @@
 import argparse
-import logging
 import os
 import shutil
 import tempfile
+import logging
 
 from . import utils
+
+logger = utils.get_colored_logger(__name__)
 
 DefaultQuestaSimPath = "/opt/mentor/questasim"
 DefaultQuestaSimLibsPath = "questasimlibs"
@@ -48,21 +50,21 @@ def run_compile_simlib(vivado, questasim, questasimlib_path):
 
         # Checking if questasimlib_path exists
         if not os.path.isdir(questasimlib_path):
-            logging.info("===========================================================================")
+            logger.info("===========================================================================")
             # Remove modelsim.ini before creating sim libs to get correct modelsim.ini in $HOME/questasimlibs_<version>
             utils.remove(os.path.join(pwd, "modelsim.ini"))
             source_tcl = os.path.join(pwd_script, "..", "firmware", "sim", "scripts", "compile_simlib.tcl")
             command = f'bash -c "source {settings64}; vivado -mode batch -source {source_tcl}"'
-            logging.info("Creating Questa sim libs in %s (running %r)", questasimlib_path, source_tcl)
+            logger.info("Creating Questa sim libs in %s (running %r)", questasimlib_path, source_tcl)
             run_command(command)
             utils.remove(os.path.join(pwd, "modelsim.ini"))
-            logging.info("Done!")
-            logging.info("===========================================================================")
+            logger.info("Done!")
+            logger.info("===========================================================================")
         else:
-            logging.info("===========================================================================")
-            logging.info("Questa sim libs in %s already exists", questasimlib_path)
-            logging.info("Nothing to do!")
-            logging.info("===========================================================================")
+            logger.info("===========================================================================")
+            logger.info("Questa sim libs in %s already exists", questasimlib_path)
+            logger.info("Nothing to do!")
+            logger.info("===========================================================================")
     finally:
         shutil.rmtree(temp_dir)
 
@@ -79,11 +81,9 @@ def main():
 
     args = parse_args()
 
-    # Setup console logging
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-
     run_compile_simlib(args.vivado, args.questasim, args.output)
 
 
 if __name__ == "__main__":
     main()
+
