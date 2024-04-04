@@ -7,6 +7,7 @@ import tarfile
 
 from . import utils
 
+logger = utils.get_colored_logger(__name__)
 
 def parse_args():
     """Parse command line arguments."""
@@ -21,8 +22,6 @@ def main():
 
     # Parse command line arguments.
     args = parse_args()
-
-    logger = utils.get_colored_logger(__name__)
 
     # with tarfile
 

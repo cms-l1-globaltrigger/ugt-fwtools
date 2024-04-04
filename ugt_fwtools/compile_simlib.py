@@ -6,6 +6,8 @@ import logging
 
 from . import utils
 
+logger = utils.get_colored_logger(__name__)
+
 DefaultQuestaSimPath = "/opt/mentor/questasim"
 DefaultQuestaSimLibsPath = "questasimlibs"
 
@@ -78,8 +80,6 @@ def parse_args():
 def main():
 
     args = parse_args()
-
-    logger = utils.get_colored_logger(__name__)
 
     run_compile_simlib(args.vivado, args.questasim, args.output)
 
