@@ -32,6 +32,8 @@ from getpass import getuser  # for username
 from socket import gethostname  # for machines hostname
 from . import utils
 
+logger = utils.get_colored_logger(__name__)
+    
 # Set application name (script file name).
 name = os.path.basename(__file__)
 
@@ -90,8 +92,6 @@ def parse_args():
 def main():
     args = parse_args()
 
-    logger = utils.get_colored_logger(__name__)
-    
     if os.path.abspath(args.src) == os.path.abspath(args.dest):
         logger.error("for safety reasons it is not allowed to overwrite the source template")
         raise RuntimeError("source template exists")

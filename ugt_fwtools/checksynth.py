@@ -15,6 +15,8 @@ from collections import namedtuple
 from typing import Dict, List
 from . import utils
 
+logger = utils.get_colored_logger(__name__)
+
 UtilizationRow = namedtuple("UtilizationRow", "site_type, used, fixed, prohibited, available, percent")
 """Tuple holding utilization information."""
 
@@ -29,8 +31,6 @@ class Analyzer:
     """Synthesis log file analyzer."""
 
     def __init__(self) -> None:
-        #self.logger: Logger = Logger()
-        self.logger: Logger = utils.get_colored_logger(__name__)
         self.utilization: Dict[int, List[UtilizationRow]] = {}
         # Options
         self.show_all = False
@@ -61,17 +61,17 @@ class Analyzer:
         runme_log_impl = os.path.join(impl_path, "runme.log")
 
         if not os.path.isfile(runme_log_synth):
-            self.logger.error(f"no such file {runme_log_synth!r}")        
+            logger.error(f"no such file {runme_log_synth!r}")        
             raise RuntimeError(f"missing {runme_log_synth!r}")
 
         if not os.path.isfile(runme_log_impl):
-            self.logger.error(f"no such file {runme_log_impl!r}")        
+            logger.error(f"no such file {runme_log_impl!r}")        
             raise RuntimeError(f"missing {runme_log_impl!r}")
         
-        self.logger.info("===========================================================================")
-        self.logger.info(f"Module #{module_id}")
-        self.logger.info("===========================================================================")
-        self.logger.info("")
+        logger.info("===========================================================================")
+        logger.info(f"Module #{module_id}")
+        logger.info("===========================================================================")
+        logger.info("")
 
         # opens file as .log
         with open(runme_log_synth, "rt") as fp:
@@ -82,25 +82,25 @@ class Analyzer:
                     errors += 1
                     # checks for args if -a or -e is an arg print error line
                     if self.show_all or self.show_errors:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
                 # checks in current line if warning is at the beginning
                 elif line.startswith("WARNING"):
                     warnings += 1
                     # checks for args if -a or -w is an arg print warning line
                     if self.show_all or self.show_warnings:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
                 # checks in current line if critical warning is at the beginning
                 elif line.startswith("CRITICAL WARNING"):
                     crit_warnings += 1
                     # checks for args if -a or -c is an arg print critical warning line
                     if self.show_all or self.show_criticals:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
 
         # opens file as .log
         with open(runme_log_impl, "rt") as fp:
@@ -111,25 +111,25 @@ class Analyzer:
                     errors += 1
                     # checks for args if -a or -e is an arg print error line
                     if self.show_all or self.show_errors:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
                 # checks in current line if warning is at the beginning
                 elif line.startswith("WARNING"):
                     warnings += 1
                     # checks for args if -a or -w is an arg print warning line
                     if self.show_all or self.show_warnings:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
                 # checks in current line if critical warning is at the beginning
                 elif line.startswith("CRITICAL WARNING"):
                     crit_warnings += 1
                     # checks for args if -a or -c is an arg print critical warning line
                     if self.show_all or self.show_criticals:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line)
-                        self.logger.info("---------------------------------------------------------------------------")
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line)
+                        logger.info("---------------------------------------------------------------------------")
 
         #
         # Parse timing summary\
@@ -141,7 +141,7 @@ class Analyzer:
             # else a second try
             timing_summary = os.path.join(impl_path, "top_timing_summary_routed.rpt")
             if not os.path.isfile(timing_summary):
-                self.logger.error(f"MISSING TIMING SUMMARY: failed to locate timing summary for module #{module_id}")
+                logger.error(f"MISSING TIMING SUMMARY: failed to locate timing summary for module #{module_id}")
                 return
 
         # Parse timing summary
@@ -157,37 +157,37 @@ class Analyzer:
                     violated_counts += 1
                     # checks args for -v and -a
                     if self.show_all or self.show_violations:
-                        self.logger.info("---------------------------------------------------------------------------")
-                        self.logger.info(line.strip(os.linesep))
+                        logger.info("---------------------------------------------------------------------------")
+                        logger.info(line.strip(os.linesep))
                         additional_lines = 4
                         for _ in range(additional_lines):
-                            self.logger.info(fp.readline().strip(os.linesep))
-                        self.logger.info("---------------------------------------------------------------------------")
+                            logger.info(fp.readline().strip(os.linesep))
+                        logger.info("---------------------------------------------------------------------------")
 
         # outputs sum of errors warnings and critical warnings if any accured it gets painted in color
-        self.logger.info("###########################################################################")
+        logger.info("###########################################################################")
 
         message = f"ERRORS: {errors}"
-        self.logger.error(message) if errors else self.logger.info(message)
+        logger.error(message) if errors else logger.info(message)
         self.messages.append(message) if errors else None
 
         message = f"WARNINGS: {warnings}"
-        self.logger.warning(message) if warnings else self.logger.info(message)
+        logger.warning(message) if warnings else logger.info(message)
         self.messages.append(message) if warnings else None
 
         message = f"CRITICAL WARNINGS: {crit_warnings}"
-        self.logger.critical(message) if crit_warnings else self.logger.info(message)
+        logger.critical(message) if crit_warnings else logger.info(message)
         self.messages.append(message) if crit_warnings else None
 
         message = f"VIOLATED: {violated_counts}"
-        self.logger.error(message) if violated_counts else self.logger.info(message)
+        logger.error(message) if violated_counts else logger.info(message)
         self.messages.append(message) if violated_counts else None
 
         self.get_utilization(impl_path, module_id)
         self.check_bitfile(os.path.join(module_path, "products"), module_id)
 
-        self.logger.info("###########################################################################")
-        self.logger.info("")
+        logger.info("###########################################################################")
+        logger.info("")
 
     def get_utilization(self, impl_path, module_id):
         """Parse utilization report (dump later)"""
@@ -213,20 +213,20 @@ class Analyzer:
         bit_filename = os.path.join(impl_path, bit_file)
 
         if not os.path.isfile(bit_filename):
-            self.logger.error(f"MISSING BIT FILE: {bit_filename}")
-            self.logger.info("")
+            logger.error(f"MISSING BIT FILE: {bit_filename}")
+            logger.info("")
 
     def dump_utilization_report(self) -> None:
         """Dumps utilization summary table."""
-        self.logger.info("+------------------------------------------------------------------------------------+")
-        self.logger.info("|                                                                                    |")
-        self.logger.info("|                            Utilization Design Summary                              |")
-        self.logger.info("|                                                                                    |")
-        self.logger.info("+--------+---------------------------+-----------------------+-----------------------+")
-        self.logger.info("|        |         Slice LUTs        |          BRAMs        |           DSPs        |")
-        self.logger.info("| Module +----------------+----------+------------+----------+------------+----------+")
-        self.logger.info("|        | Used/Available | Percent  | Used/Avail | Percent  | Used/Avail | Percent  |")
-        self.logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
+        logger.info("+------------------------------------------------------------------------------------+")
+        logger.info("|                                                                                    |")
+        logger.info("|                            Utilization Design Summary                              |")
+        logger.info("|                                                                                    |")
+        logger.info("+--------+---------------------------+-----------------------+-----------------------+")
+        logger.info("|        |         Slice LUTs        |          BRAMs        |           DSPs        |")
+        logger.info("| Module +----------------+----------+------------+----------+------------+----------+")
+        logger.info("|        | Used/Available | Percent  | Used/Avail | Percent  | Used/Avail | Percent  |")
+        logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         for module_id, utils in self.utilization.items():
             row = f"| {module_id:>6} "
             for util in utils:
@@ -236,9 +236,9 @@ class Analyzer:
                 else:
                     row += f"| {ratio:>10} | {util.percent:>6} % "
             row += "|"
-            self.logger.info(row)
-        self.logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
-        self.logger.info("")
+            logger.info(row)
+        logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
+        logger.info("")
 
     def write_logifle(self, filename: str) -> None:
         with open(os.path.abspath(filename), "w+") as fp:

@@ -8,6 +8,7 @@ import sys
 from . import utils
 from .synthesis import create_module, implement_module, show_screen_sessions
 
+logger = utils.get_colored_logger(__name__)
 
 def parse_args():
     """Parse command line arguments."""
@@ -22,8 +23,6 @@ def main() -> None:
 
     # Parse command line arguments.
     args = parse_args()
-
-    logger = utils.get_colored_logger(__name__)
 
     if not os.path.isfile(args.filename):
         logger.error(f"no such file: %r", args.filename)
