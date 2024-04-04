@@ -53,7 +53,7 @@ DefaultIpbusTag: str = "v1.4"
 DefaultMP7Url: str = "https://:@gitlab.cern.ch:8443/cms-l1-globaltrigger/mp7.git"
 """Default URL MP7 FW repo."""
 
-DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt"
+DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 """Default tag MP7 FW repo."""
 
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
@@ -273,12 +273,22 @@ class Module(object):
                 adt_vhd = fp.read()
             adt_vhd = adt_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
 
+        # Create 'topo_trigger.txt' from 'topo_trigger.dep'
+        topo_dep_file = os.path.join(uGTalgosPath, "cfg", "topo_trigger.dep")
+        topo_vhd = ""
+
+        if os.path.exists(topo_dep_file):
+            with open(topo_dep_file, "rt") as fp:
+                topo_vhd = fp.read()
+            topo_vhd = topo_vhd.replace("src ", "vcom -93 -work work $HDL_DIR/")
+
         # Insert content of 'anomaly_detection.txt' into DO_FILE
         render_template(
             os.path.join(self.path, DO_FILE_TMP),
             os.path.join(self.path, DO_FILE),
             {
                 "{{adt_vhd}}": adt_vhd,
+                "{{topo_vhd}}": topo_vhd,
             }
         )
 
