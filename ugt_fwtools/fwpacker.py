@@ -1,6 +1,5 @@
 import argparse
 import configparser
-import logging
 import os
 import shutil
 import tempfile
@@ -23,8 +22,7 @@ def main():
     # Parse command line arguments.
     args = parse_args()
 
-    # Setup console logging
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
+    logger = utils.get_colored_logger(__name__)
 
     # with tarfile
 
@@ -57,11 +55,11 @@ def main():
     filename = os.path.join(basepath, f"{basename}-{timestamp}.tar.gz")
 
     tmpdir = tempfile.mkdtemp()
-    logging.info("Created temporary dircetory %s", tmpdir)
+    logger.info("Created temporary dircetory %s", tmpdir)
 
     # Check modules
     for i in range(menu_modules):
-        logging.info("collecting data from module %s", i)
+        logger.info("collecting data from module %s", i)
         module_dir = f"module_{i}"
 
         proj_dir = os.path.join("proj", module_dir)
@@ -87,24 +85,25 @@ def main():
             os.path.join(log_dir, "runme_impl_1.log")
         )
 
-    logging.info("adding build configuration: %s", args.config)
+    logger.info("adding build configuration: %s", args.config)
     shutil.copy(args.config, tmpdir)
 
     xml_file = os.path.join(buildarea, "src", f"{menu}.xml")
-    logging.info("adding XML menu: %s", xml_file)
+    logger.info("adding XML menu: %s", xml_file)
     shutil.copy(xml_file, tmpdir)
 
-    logging.info("creating tarball: %s", filename)
+    logger.info("creating tarball: %s", filename)
     with tarfile.open(filename, "w:gz") as tar:
-        logging.info("adding to tarball: %s", tmpdir)
+        logger.info("adding to tarball: %s", tmpdir)
         tar.add(tmpdir, arcname=basename, recursive=True)
-    logging.info("closed tarball: %s", filename)
+    logger.info("closed tarball: %s", filename)
 
-    logging.info("removing temporary directory %s.", tmpdir)
+    logger.info("removing temporary directory %s.", tmpdir)
     shutil.rmtree(tmpdir)
 
-    logging.info("done.")
+    logger.info("done.")
 
 
 if __name__ == "__main__":
     main()
+

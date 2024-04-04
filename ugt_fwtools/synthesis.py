@@ -1,6 +1,5 @@
 import argparse
 import configparser
-import logging
 import os
 import pathlib
 import shutil
@@ -12,6 +11,9 @@ from typing import Dict, List
 
 from . import utils
 from .xmlmenu import XmlMenu
+from . import __version__
+
+logger = utils.get_colored_logger(__name__)
 
 BoardAliases: Dict[str, str] = {
     "mp7xe_690": "xe",
@@ -19,15 +21,18 @@ BoardAliases: Dict[str, str] = {
 
 DefaultVivadoVersion = os.getenv("UGT_VIVADO_VERSION", "")
 if not DefaultVivadoVersion:
-    raise RuntimeError("UGT_VIVADO_VERSION is not defined.")
+    logger.error("UGT_VIVADO_VERSION is not defined.")
+    raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
 
 VivadoBaseDir = os.getenv("UGT_VIVADO_BASE_DIR", "")
 if not VivadoBaseDir:
-    raise RuntimeError("UGT_VIVADO_BASE_DIR is not defined.")
+    logger.error("UGT_VIVADO_BASE_DIR is not defined.")
+    raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
 
 vivadoPath = os.path.abspath(os.path.join(VivadoBaseDir, DefaultVivadoVersion))
 if not os.path.isdir(vivadoPath):
-    raise RuntimeError("No installation of Vivado in %r" % vivadoPath)
+    logger.error("No installation of Vivado in %r" % vivadoPath)
+    raise RuntimeError("missing installation of Vivado")
 
 DefaultBoardType: str = "mp7xe_690"
 """Default board type to be used."""
@@ -76,7 +81,7 @@ def start_screen_session(session: str, commands: str) -> None:
 
 def get_ipbb_version() -> str:
     result = subprocess.run(["ipbb", "--version"], stdout=subprocess.PIPE)
-    return result.stdout.decode().split()[-1].strip()  # ipbb, version 0.5.2
+    return result.stdout.decode().split()[-1].strip()  
 
 
 def download_file_from_url(url: str, filename: str) -> None:
@@ -84,7 +89,7 @@ def download_file_from_url(url: str, filename: str) -> None:
     # Remove existing file.
     utils.remove(filename)
     # Download file
-    logging.info("retrieving from: %r ", url)
+    logger.info("retrieving from: %r ", url)
     urllib.request.urlretrieve(url, filename)
 
 
@@ -104,7 +109,7 @@ def get_menu_name(path: str) -> str:
 def replace_vhdl_templates(vhdl_snippets_dir: str, src_fw_dir: str, dest_fw_dir: str) -> None:
     """Replace VHDL templates with snippets from VHDL Producer."""
     # Read generated VHDL snippets
-    logging.info("replace VHDL templates with snippets from VHDL Producer ...")
+    logger.info("replace VHDL templates with snippets from VHDL Producer ...")
     replace_map = {
         "{{algo_index}}": utils.read_file(os.path.join(vhdl_snippets_dir, "algo_index.vhd")),
         "{{ugt_constants}}": utils.read_file(os.path.join(vhdl_snippets_dir, "ugt_constants.vhd")),
@@ -145,7 +150,7 @@ def implement_module(module_id: int, module_name: str, args) -> None:
     command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
 
     session = f"build_{args.project_type}_{args.build}_{module_id}"
-    logging.info("starting screen session %r for module %s ...", session, module_id)
+    logger.info("starting screen session %r for module %s ...", session, module_id)
     start_screen_session(session, command)
 
 
@@ -170,6 +175,9 @@ def write_build_config(filename: str, args) -> None:
     config.add_section("vivado")
     config.set("vivado", "version", args.vivado)
 
+    config.add_section("fwtools")
+    config.set("fwtools", "version", __version__)
+
     config.add_section("firmware")
     config.set("firmware", "ipburl", args.ipburl)
     config.set("firmware", "ipbtag", args.ipbtag)
@@ -189,7 +197,7 @@ def write_build_config(filename: str, args) -> None:
     with open(filename, "wt") as fp:
         config.write(fp)
 
-    logging.info("created configuration file: %r", filename)
+    logger.info("created configuration file: %r", filename)
 
 
 def parse_args():
@@ -225,21 +233,19 @@ def main() -> None:
     # check menu name
     utils.menuname_t(args.menu_name)
 
-    # Setup console logging
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-
     # Check for UGT_VIVADO_BASE_DIR
     args.vivado_base_dir = os.getenv("UGT_VIVADO_BASE_DIR")
     if not args.vivado_base_dir:
-        raise RuntimeError("Environment variable 'UGT_VIVADO_BASE_DIR' not set. Set with: 'export UGT_VIVADO_BASE_DIR=...'")
+        logger.error("environment variable 'UGT_VIVADO_BASE_DIR' not set.")
+        logger.error("  Set with: 'export UGT_VIVADO_BASE_DIR=...'")
+        raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
 
     # Vivado settings
     args.settings64 = os.path.join(args.vivado_base_dir, args.vivado, "settings64.sh")
     if not os.path.isfile(args.settings64):
-        raise RuntimeError(
-            f"no such Xilinx Vivado settings file {args.settings64!r}\n"
-            f"  check if Xilinx Vivado {args.vivado} is installed on this machine."
-        )
+        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")        
+        logger.error(f"  check if Xilinx Vivado {args.vivado} is installed on this machine.")
+        raise RuntimeError(f"missing settings file {args.settings64!r}")
 
     # TODO
     # Board type taken from mp7url repo name
@@ -262,40 +268,43 @@ def main() -> None:
     args.ipbb_dir = os.path.join(args.path, args.build)
 
     if os.path.isdir(args.ipbb_dir):
-        raise RuntimeError(f"build area already exists: {args.ipbb_dir}")
+        logger.error(f"build area already exists: {args.ipbb_dir}")
+        raise RuntimeError(f"{args.ipbb_dir} exists!")
 
-    logging.info("===========================================================================")
-    logging.info("creating IPBB area ...")
+    logger.info("===========================================================================")
+    logger.info("creating IPBB area ...")
 
     args.ipbb_version = get_ipbb_version()
-    logging.info("ipbb_version: %s", args.ipbb_version)
+    logger.info("ipbb_version: %s", args.ipbb_version)
 
     create_build_area(args)
 
     xml_filename = os.path.join(args.ipbb_dir, "src", f"{args.menu_name}.xml")
 
-    logging.info("===========================================================================")
-    logging.info("retrieve %r...", xml_filename)
+    logger.info("===========================================================================")
+    logger.info("retrieve %r...", xml_filename)
     download_file_from_url(args.xml_uri, xml_filename)
 
     html_uri = urllib.parse.urljoin(args.xml_uri, f"../doc/{args.menu_name}.html")
     html_filename = os.path.join(args.ipbb_dir, "src", f"{args.menu_name}.html")
 
-    logging.info("===========================================================================")
-    logging.info("retrieve %r...", html_filename)
+    logger.info("===========================================================================")
+    logger.info("retrieve %r...", html_filename)
     download_file_from_url(html_uri, html_filename)
 
     # Parse menu content
     menu = XmlMenu(xml_filename)
 
     if not menu.name.startswith("L1Menu_"):
-        raise RuntimeError(f"Invamenu_nameme: {menu.name!r}")
+        logger.error(f"invalid menu_name: {menu.name!r}")
+        raise RuntimeError(f"invalid menu_name")
 
     # Fetch number of menu modules.
     args.modules = menu.n_modules
 
     if not args.modules:
-        raise RuntimeError("Menu contains no modules")
+        logger.error("menu contains no modules")
+        raise RuntimeError("no modules")
 
     ipbb_src_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", args.project_type, "firmware"))
 
@@ -307,10 +316,10 @@ def main() -> None:
         os.makedirs(ipbb_dest_fw_dir)
 
         # Download generated VHDL snippets from repository and replace VHDL templates
-        logging.info("===========================================================================")
-        logging.info(" *** module %s ***", module_id)
-        logging.info("===========================================================================")
-        logging.info("retrieve VHDL snippets for module %s and replace VHDL templates ...", module_id)
+        logger.info("===========================================================================")
+        logger.info(" *** module %s ***", module_id)
+        logger.info("===========================================================================")
+        logger.info("retrieve VHDL snippets for module %s and replace VHDL templates ...", module_id)
         vhdl_snippets_dir = os.path.join(ipbb_dest_fw_dir, "vhdl_snippets")
         os.makedirs(vhdl_snippets_dir)
 
@@ -322,31 +331,30 @@ def main() -> None:
 
         replace_vhdl_templates(vhdl_snippets_dir, ipbb_src_fw_dir, ipbb_dest_fw_dir)
 
-        logging.info("patch the target package with current UNIX timestamp/username/hostname ...")
+        logger.info("patch the target package with current UNIX timestamp/username/hostname ...")
         top_pkg_tpl = os.path.join(ipbb_src_fw_dir, "hdl", "packages", "gt_mp7_top_pkg_tpl.vhd")
         top_pkg = os.path.join(ipbb_src_fw_dir, "hdl", "packages", "gt_mp7_top_pkg.vhd")
         subprocess.run(["python", os.path.join(ipbb_src_fw_dir, "..", "scripts", "pkgpatch.py"), "--build", args.build, top_pkg_tpl, top_pkg]).check_returncode()
 
-        logging.info("===========================================================================")
-        logging.info("creating IPBB project for module %s ...", module_id)
+        logger.info("===========================================================================")
+        logger.info("creating IPBB project for module %s ...", module_id)
 
         create_module(module_id, module_name, args)
 
-        logging.info("===========================================================================")
-        logging.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
+        logger.info("===========================================================================")
+        logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
 
         implement_module(module_id, module_name, args)
 
     # list running screen sessions
-    logging.info("===========================================================================")
+    logger.info("===========================================================================")
     show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
     write_build_config(config_filename, args)
 
-    logging.info("done.")
-
+    logger.info("done.")
 
 if __name__ == "__main__":
     main()
