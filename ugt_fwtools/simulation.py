@@ -28,9 +28,12 @@ IGNORED_ALGOS = [
 
 TIMEOUT_SEC: float = 60.0
 
-# terminal size
-with os.popen("stty size") as fp:
-    ts = int(fp.read().split()[1])
+# terminal size, default for non-tty
+if sys.stdout.isatty():
+    with os.popen("stty size") as fp:
+        ts = int(fp.read().split()[1])
+else:
+    ts = 80
 
 ok_green = ("\033[0;32m OK     \033[32m")
 ignore_yellow = ("\033[1;33m IGNORE \033[33m")
