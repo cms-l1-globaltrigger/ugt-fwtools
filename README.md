@@ -13,7 +13,7 @@ export UGT_QUESTASIM_SIM_PATH=/opt/mentor/questa/2021.1_2
 export UGT_QUESTASIM_LIBS_PATH=$HOME/.questasimlibs
 export UGT_VIVADO_BASE_DIR=/opt/Xilinx/Vivado
 export UGT_VIVADO_VERSION=2021.2
-source ${VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
+source ${UGT_VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
 ```
 
 ## Install
