@@ -49,13 +49,13 @@ DefaultIpbusTag: str = "v1.4"
 DefaultMP7Url: str = "https://:@gitlab.cern.ch:8443/cms-l1-globaltrigger/mp7.git"
 """Default URL MP7 FW repo."""
 
-DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt"
+DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 """Default tag MP7 FW repo."""
 
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
 """Default URL for ugt FW repo."""
 
-DefaultUgtTag: str = "v1.22.3"
+DefaultUgtTag: str = "v1.26.0"
 """Default tag for ugt FW repo."""
 
 vhdl_snippets: List[str] = [
