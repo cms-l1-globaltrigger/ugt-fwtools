@@ -51,7 +51,7 @@ Use command line option `--ugttag <tag>` to run with a different ugt tag or bran
 ## Resynthesis of an existing module
 
 ```bash
-ugt-implement-module 2 build_0x1190.cfg
+ugt-implement-module 2 build_0x1190.cfg   # resynthesize module number 2
 ```
 
 ## Check results
