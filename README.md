@@ -19,7 +19,7 @@ source ${VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
 ## Install
 
 ```bash
-pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.4.0
+pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.7.0
 ```
 
 ## Simulation
@@ -32,18 +32,32 @@ Use command line option `--ugttag <tag>` to run with a different ugt tag or bran
 
 To persist the simulation results use option `--output <dir>`.
 
-## Synthesis
+## Synthesis (6 modules)
 
 ```bash
-ugt-synthesize sample.xml --build 0x1160
+ugt-synthesize sample.xml --build 0x1190
 ```
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
 
+## Synthesis of only one module
+
+```bash
+ugt-synth-only-one sample.xml --build 0x1190 --module_nr 2
+```
+
+Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
+
+## Resynthesis of an existing module
+
+```bash
+ugt-implement-module 2 build_0x1190.cfg
+```
+
 ## Check results
 
 ```bash
-ugt-checksynth build_0x1160.cfg
+ugt-checksynth build_0x1190.cfg
 ```
 
 ## Build report
@@ -51,13 +65,13 @@ ugt-checksynth build_0x1160.cfg
 Print textile formatted information to be inserted in redmine issues and wiki.
 
 ```bash
-ugt-buildreport build_0x1160.cfg
+ugt-buildreport build_0x1190.cfg
 ```
 
 ## Bundle firmware
 
 ```bash
-ugt-fwpacker build_0x1160.cfg
+ugt-fwpacker build_0x1190.cfg
 ```
 
 ## Vivado archives
@@ -65,11 +79,11 @@ ugt-fwpacker build_0x1160.cfg
 Create Vivado archives of all modules.
 
 ```bash
-ugt-archive build_0x1160.cfg
+ugt-archive build_0x1190.cfg
 ```
 
 Create Vivado archive of individual module.
 
 ```bash
-ugt-archive build_0x1160.cfg -m 1  # module_1
+ugt-archive build_0x1190.cfg -m 1  # module_1
 ```
