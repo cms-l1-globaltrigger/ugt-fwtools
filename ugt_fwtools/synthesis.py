@@ -1,4 +1,5 @@
 import argparse
+import atexit
 import configparser
 import os
 import pathlib
@@ -18,21 +19,6 @@ logger = utils.get_colored_logger(__name__)
 BoardAliases: Dict[str, str] = {
     "mp7xe_690": "xe",
 }
-
-DefaultVivadoVersion = os.getenv("UGT_VIVADO_VERSION", "")
-if not DefaultVivadoVersion:
-    logger.error("UGT_VIVADO_VERSION is not defined.")
-    raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
-
-VivadoBaseDir = os.getenv("UGT_VIVADO_BASE_DIR", "")
-if not VivadoBaseDir:
-    logger.error("UGT_VIVADO_BASE_DIR is not defined.")
-    raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
-
-vivadoPath = os.path.abspath(os.path.join(VivadoBaseDir, DefaultVivadoVersion))
-if not os.path.isdir(vivadoPath):
-    logger.error("No installation of Vivado in %r" % vivadoPath)
-    raise RuntimeError("missing installation of Vivado")
 
 DefaultBoardType: str = "mp7xe_690"
 """Default board type to be used."""
@@ -81,7 +67,7 @@ def start_screen_session(session: str, commands: str) -> None:
 
 def get_ipbb_version() -> str:
     result = subprocess.run(["ipbb", "--version"], stdout=subprocess.PIPE)
-    return result.stdout.decode().split()[-1].strip()  
+    return result.stdout.decode().split()[-1].strip()
 
 
 def download_file_from_url(url: str, filename: str) -> None:
@@ -140,18 +126,14 @@ def create_module(module_id: int, module_name: str, args) -> None:
     subprocess.run(["ipbb", "proj", "create", "vivado", module_name, f"{args.board_type}:../{args.project_type}"], cwd=args.ipbb_dir).check_returncode()
 
 
-def implement_module(module_id: int, module_name: str, args) -> None:
+def implement_module(module_id: int, module_name: str, args) -> str:
     """Run module implementation in screen session."""
     # IPBB commands: running IPBB project, synthesis and implementation, creating bitfile
     cmd_ipbb_project = "ipbb vivado generate-project --single"  # workaround to prevent "hang-up" in make-project with IPBB v0.5.2
     cmd_ipbb_synth = "ipbb vivado synth impl package"
 
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
-    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
-
-    session = f"build_{args.project_type}_{args.build}_{module_id}"
-    logger.info("starting screen session %r for module %s ...", session, module_id)
-    start_screen_session(session, command)
+    return f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
 
 
 def write_build_config(filename: str, args) -> None:
@@ -204,7 +186,6 @@ def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("menu_xml", help="path to menu xml file (in repository or local")
-    parser.add_argument("--vivado", metavar="<version>", default=DefaultVivadoVersion, type=utils.vivado_t, help=f"Vivado version to run (default is {DefaultVivadoVersion!r})")
     parser.add_argument("--ipburl", metavar="<path>", default=DefaultIpbusUrl, help=f"URL of IPB firmware repo (default is {DefaultIpbusUrl!r})")
     parser.add_argument("-i", "--ipbtag", metavar="<tag>", default=DefaultIpbusTag, help=f"IPBus firmware repo: tag or branch name (default is {DefaultIpbusTag!r})")
     parser.add_argument("--mp7url", metavar="<path>", default=DefaultMP7Url, help=f"URL of MP7 firmware repo (default is {DefaultMP7Url!r})")
@@ -214,6 +195,7 @@ def parse_args():
     parser.add_argument("--build", type=utils.build_str_t, required=True, metavar="<version>", help="menu build version (eg. 0x1001) [required]")
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
+    parser.add_argument("--no-screen", action="store_true", help="do not use screen sessions (blocking)")
     return parser.parse_args()
 
 
@@ -240,10 +222,21 @@ def main() -> None:
         logger.error("  Set with: 'export UGT_VIVADO_BASE_DIR=...'")
         raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
 
+    # Check for UGT_VIVADO_VERSION
+    args.vivado = os.getenv("UGT_VIVADO_VERSION")
+    if not args.vivado:
+        logger.error("UGT_VIVADO_VERSION is not defined.")
+        raise RuntimeError("missing variable: UGT_VIVADO_VERSION")
+
+    vivado_path = os.path.abspath(os.path.join(args.vivado_base_dir, args.vivado))
+    if not os.path.isdir(vivado_path):
+        logger.error("No installation of Vivado in %r" % vivado_path)
+        raise RuntimeError("missing installation of Vivado")
+
     # Vivado settings
-    args.settings64 = os.path.join(args.vivado_base_dir, args.vivado, "settings64.sh")
+    args.settings64 = os.path.join(vivado_path, "settings64.sh")
     if not os.path.isfile(args.settings64):
-        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")        
+        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")
         logger.error(f"  check if Xilinx Vivado {args.vivado} is installed on this machine.")
         raise RuntimeError(f"missing settings file {args.settings64!r}")
 
@@ -308,6 +301,14 @@ def main() -> None:
 
     ipbb_src_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", args.project_type, "firmware"))
 
+    processes = []
+
+    def terminate_processes():
+        for process in processes:
+            if process.poll() is None:
+                process.terminate()
+    atexit.register(terminate_processes)
+
     for module_id in range(args.modules):
         module_name = f"module_{module_id}"
         ipbb_module_dir = os.path.join(args.ipbb_dir, module_name)
@@ -344,11 +345,23 @@ def main() -> None:
         logger.info("===========================================================================")
         logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
 
-        implement_module(module_id, module_name, args)
+        command = implement_module(module_id, module_name, args)
+
+        if args.no_screen:
+            process = subprocess.Popen(["bash", "-c", command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            processes.append(process)
+        else:
+            session = f"build_{args.project_type}_{args.build}_{module_id}"
+            logger.info("starting screen session %r for module %s ...", session, module_id)
+            start_screen_session(session, command)
 
     # list running screen sessions
     logger.info("===========================================================================")
-    show_screen_sessions()
+    if args.no_screen:
+        for process in processes:
+            process.wait()
+    else:
+        show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
