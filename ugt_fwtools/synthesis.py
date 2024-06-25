@@ -307,6 +307,9 @@ def main() -> None:
         for process in processes:
             if process.poll() is None:
                 process.terminate()
+        for process in processes:
+            process.communicate()
+
     atexit.register(terminate_processes)
 
     for module_id in range(args.modules):
@@ -359,7 +362,7 @@ def main() -> None:
     logger.info("===========================================================================")
     if args.no_screen:
         for process in processes:
-            process.wait()
+            process.communicate()
     else:
         show_screen_sessions()
 
