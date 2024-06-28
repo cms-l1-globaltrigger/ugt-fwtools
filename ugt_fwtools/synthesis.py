@@ -351,19 +351,19 @@ def main() -> None:
         command = implement_module(module_id, module_name, args)
 
         if args.manual:
+            # create run script for manual mode
             with open(os.path.join(ipbb_dest_fw_dir, "run_build_synth.sh"), "wt") as fp:
                 fp.write("#!/bin/bash\n")
                 fp.write(command)
                 fp.write("\n")
-        if args.no_screen:
-            process = subprocess.Popen(["bash", "-c", command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            processes.append(process)
-        elif args.manual:
-            
         else:
-            session = f"build_{args.project_type}_{args.build}_{module_id}"
-            logger.info("starting screen session %r for module %s ...", session, module_id)
-            start_screen_session(session, command)
+            if args.no_screen:
+                process = subprocess.Popen(["bash", "-c", command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                processes.append(process)   
+            else:
+                session = f"build_{args.project_type}_{args.build}_{module_id}"
+                logger.info("starting screen session %r for module %s ...", session, module_id)
+                start_screen_session(session, command)
 
     # list running screen sessions
     logger.info("===========================================================================")
