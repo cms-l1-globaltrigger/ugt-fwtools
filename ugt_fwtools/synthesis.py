@@ -196,6 +196,7 @@ def parse_args():
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
     parser.add_argument("--no-screen", action="store_true", help="do not use screen sessions (blocking)")
+    parser.add_argument("--manual", action="store_true")
     return parser.parse_args()
 
 
@@ -353,6 +354,10 @@ def main() -> None:
         if args.no_screen:
             process = subprocess.Popen(["bash", "-c", command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             processes.append(process)
+        elif args.manual:
+            with open(os.path.join(ipbb_module_dir, "run_synthesis.sh"), "wt") as fp:
+                fp.write(command)
+                fp.write("\n")
         else:
             session = f"build_{args.project_type}_{args.build}_{module_id}"
             logger.info("starting screen session %r for module %s ...", session, module_id)
@@ -363,7 +368,7 @@ def main() -> None:
     if args.no_screen:
         for process in processes:
             process.communicate()
-    else:
+    elif args.manual:
         show_screen_sessions()
 
     # Write build configuration file
