@@ -315,7 +315,6 @@ def main() -> None:
 
     for module_id in range(args.modules):
         module_name = f"module_{module_id}"
-        ipbb_module_dir = os.path.join(args.ipbb_dir, module_name)
 
         ipbb_dest_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", module_name))
         os.makedirs(ipbb_dest_fw_dir)
@@ -351,13 +350,16 @@ def main() -> None:
 
         command = implement_module(module_id, module_name, args)
 
+        if args.manual:
+            with open(os.path.join(ipbb_dest_fw_dir, "run_build_synth.sh"), "wt") as fp:
+                fp.write("#!/bin/bash\n")
+                fp.write(command)
+                fp.write("\n")
         if args.no_screen:
             process = subprocess.Popen(["bash", "-c", command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             processes.append(process)
         elif args.manual:
-            with open(os.path.join(ipbb_module_dir, "run_synthesis.sh"), "wt") as fp:
-                fp.write(command)
-                fp.write("\n")
+            
         else:
             session = f"build_{args.project_type}_{args.build}_{module_id}"
             logger.info("starting screen session %r for module %s ...", session, module_id)
@@ -365,11 +367,12 @@ def main() -> None:
 
     # list running screen sessions
     logger.info("===========================================================================")
-    if args.no_screen:
-        for process in processes:
-            process.communicate()
-    elif args.manual:
-        show_screen_sessions()
+    if not args.manual:
+        if args.no_screen:
+            for process in processes:
+                process.communicate()
+        else:
+            show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
