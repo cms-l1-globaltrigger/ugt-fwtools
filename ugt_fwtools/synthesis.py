@@ -317,7 +317,7 @@ def main() -> None:
 
     # Check and apply module filter (eg. `-m=2,4`)
     if args.modules:
-        for module_id in args.module:
+        for module_id in args.modules:
             if module_id not in module_ids:
                 raise RuntimeError(f"invalid module id: {moduile_id!r}")
         module_ids = args.modules
