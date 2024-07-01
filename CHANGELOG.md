@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - 2024-06-21
 
+### Added
+- option to synthesize only a subset of modules
+
 ### Changed
-- added script for sythesis of only one module (synthesize_only_one_module.py)
-- renamed script synth_1_module.py to resynthesize_one_module.py 
+- renamed script synth_1_module.py to resynthesize_one_module.py
 
 ## [0.6.0] - 2024-03-15
 
