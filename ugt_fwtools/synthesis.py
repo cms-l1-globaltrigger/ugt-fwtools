@@ -81,7 +81,7 @@ def start_screen_session(session: str, commands: str) -> None:
 
 def get_ipbb_version() -> str:
     result = subprocess.run(["ipbb", "--version"], stdout=subprocess.PIPE)
-    return result.stdout.decode().split()[-1].strip()  
+    return result.stdout.decode().split()[-1].strip()
 
 
 def download_file_from_url(url: str, filename: str) -> None:
@@ -243,7 +243,7 @@ def main() -> None:
     # Vivado settings
     args.settings64 = os.path.join(args.vivado_base_dir, args.vivado, "settings64.sh")
     if not os.path.isfile(args.settings64):
-        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")        
+        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")
         logger.error(f"  check if Xilinx Vivado {args.vivado} is installed on this machine.")
         raise RuntimeError(f"missing settings file {args.settings64!r}")
 

@@ -8,13 +8,8 @@ import re
 import os
 from datetime import datetime
 
-
-def textile_strong(s):
-    return f"*{s}*"
-
-
-def textile_pre_inline(s):
-    return f"@{s}@"
+ALL_FORMATS = ["markdown", "textile"]
+DEFAULT_FORMAT = "markdown"
 
 
 def detect_tm_reporter_version(filename):
@@ -40,11 +35,12 @@ def detect_versions_vx_y_z(filename, needle):
         line = fp.readline()
         while(line):
             if line.strip().startswith(needle):
-                line2=fp.readline()
+                line2 = fp.readline()
                 return line2.strip(" -v").strip()
             else:
-                line=fp.readline()
+                line = fp.readline()
     return None
+
 
 def detect_gt_versions(filename):
     """Try to detect uGT, FDL and GTL versions from VHDL statements. Returns a
@@ -70,6 +66,7 @@ def detect_gt_versions(filename):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", help="build config file (*.cfg)")
+    parser.add_argument("--format", choices=ALL_FORMATS, default=DEFAULT_FORMAT, help="select output format (default is markdown)")
     return parser.parse_args()
 
 
@@ -127,27 +124,52 @@ def main() -> None:
 
     print("Insert into ISSUE description:\n")
 
-    for row in table:
-        print(("|_<.{0} |{1} |".format(*row)))
+    if args.format == "textile":
+        for row in table:
+            print(("|_<.{0} |{1} |".format(*row)))
 
-    items = [
-        menu_name,
-        textile_pre_inline(build_id),
-        username,
-        vivado_version,
-        mp7fw_tag,
-        ugt_tag,
-        versions["GT"],
-        versions["FRAME"],
-        versions["GTL_FW"],
-        versions["FDL_FW"],
-        "#",
-        f"created on *{hostname}*",
-        datetime.now().strftime("%Y-%m-%d"),
-    ]
-    print("\nPrepend BITFILES table:\n")
-    print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
-    print(("|{0} |".format(" |".join(items))))
+        items = [
+            menu_name,
+            f"@{build_id}@",
+            username,
+            vivado_version,
+            mp7fw_tag,
+            ugt_tag,
+            versions["GT"],
+            versions["FRAME"],
+            versions["GTL_FW"],
+            versions["FDL_FW"],
+            "#",
+            f"created on *{hostname}*",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+        print("\nPrepend BITFILES table:\n")
+        print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
+        print(("|{0} |".format(" |".join([format(item) for item in items]))))
+
+    elif args.format == "markdown":
+        for row in table:
+            print((" - **{0}**: {1}".format(*row)))
+
+        items = [
+            menu_name,
+            f"`{build_id}`",
+            username,
+            vivado_version,
+            mp7fw_tag,
+            ugt_tag,
+            versions["GT"],
+            versions["FRAME"],
+            versions["GTL_FW"],
+            versions["FDL_FW"],
+            "#",
+            f"created on **{hostname}**",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+        print("\nPrepend BITFILES table:\n")
+        print("|Menu tag |Build |Creator |Vivado |MP7 tag |uGT tag |uGT |Frame |GTL |FDL |Issue |Remarks |Date |")
+        print("|---------|------|--------|-------|--------|--------|----|------|----|----|------|--------|-----|")
+        print("|{0} |".format(" |".join([format(item) for item in items])))
 
 
 if __name__ == "__main__":
