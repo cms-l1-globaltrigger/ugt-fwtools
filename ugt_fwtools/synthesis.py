@@ -319,7 +319,7 @@ def main() -> None:
     if args.modules:
         for module_id in args.modules:
             if module_id not in module_ids:
-                raise RuntimeError(f"invalid module id: {moduile_id!r}")
+                raise RuntimeError(f"invalid module id: {module_id!r}")
         module_ids = args.modules
 
     ipbb_src_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", args.project_type, "firmware"))
