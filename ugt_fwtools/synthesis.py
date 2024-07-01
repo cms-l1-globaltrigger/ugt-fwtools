@@ -149,9 +149,19 @@ def implement_module(module_id: int, module_name: str, args) -> None:
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
     command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
 
-    session = f"build_{args.project_type}_{args.build}_{module_id}"
-    logger.info("starting screen session %r for module %s ...", session, module_id)
-    start_screen_session(session, command)
+    # create run script for manual mode
+    ipbb_dest_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", module_name))
+    filename = os.path.join(ipbb_dest_fw_dir, "run_build_synth.sh")
+    logger.info("create manual script for module %s: %s ...", module_id, filename)
+    with open(filename, "wt") as fp:
+        fp.write("#!/bin/bash\n")
+        fp.write(command)
+        fp.write("\n")
+
+    if not args.manual:
+        session = f"build_{args.project_type}_{args.build}_{module_id}"
+        logger.info("starting screen session %r for module %s ...", session, module_id)
+        start_screen_session(session, command)
 
 
 def write_build_config(filename: str, args) -> None:
@@ -213,6 +223,7 @@ def parse_args():
     parser.add_argument("--ugttag", metavar="<tag>", default=DefaultUgtTag, help=f"ugt firmware repo: tag or branch name (default is {DefaultUgtTag!r})")
     parser.add_argument("--build", type=utils.build_str_t, required=True, metavar="<version>", help="menu build version (eg. 0x1001) [required]")
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
+    parser.add_argument("--manual", action="store_true", help="do not run synthesis in screen sessions (manual mode)")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
     return parser.parse_args()
 
@@ -341,14 +352,16 @@ def main() -> None:
 
         create_module(module_id, module_name, args)
 
-        logger.info("===========================================================================")
-        logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
+        if not args.manual:
+            logger.info("===========================================================================")
+            logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
 
         implement_module(module_id, module_name, args)
 
     # list running screen sessions
     logger.info("===========================================================================")
-    show_screen_sessions()
+    if not args.manual:
+        show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
