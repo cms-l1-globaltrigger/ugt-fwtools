@@ -8,7 +8,7 @@ import socket
 import subprocess
 import os
 import re
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 
 def build_t(value: str) -> str:
@@ -69,6 +69,32 @@ def questasim_t(version: str) -> str:
     if not re.match(r'^\d+\.\d{1}[a-z0-9_]{0,3}$', version):
         raise ValueError("not a valid Questasim version: '{version}'".format(**locals()))
     return version
+
+
+def expand_range(expr: str) -> List[int]:
+    """Expand numeric ranges.
+    >>> expand_range("3")
+    [3]
+    >>> expand_range("4-7")
+    [4, 5, 6, 7]
+    """
+    tokens = expr.split('-')
+    if len(tokens) == 2:
+        return [int(tokens[0]), int(tokens[1])]
+    if len(tokens) == 1:
+        return [int(tokens[0])]
+    raise ValueError(f"invalid range '{expr}'")
+
+
+def parse_range(expr: str) -> List[int]:
+    """Parse and resolves numeric ranges.
+    >>> parse_range("2,4-7,5,9")
+    [2, 4, 5, 6, 7, 9]
+    """
+    result = set()
+    for token in expr.split(','):
+        result.update(expand_range(token))
+    return list(result)
 
 
 def remove(filename: str) -> None:
