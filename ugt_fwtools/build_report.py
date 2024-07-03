@@ -41,7 +41,7 @@ def detect_versions_vx_y_z(filename, needle):
         while(line):
             if line.strip().startswith(needle):
                 line2=fp.readline()
-                return line2.strip(" -v").strip()
+                return line2.split(" ")[2].strip()
             else:
                 line=fp.readline()
     return None
@@ -95,9 +95,9 @@ def main() -> None:
 
     versions = {}
     ugt_constants_path = os.path.join(buildarea, "src", "module_0", "vhdl_snippets", "ugt_constants.vhd")
-    needle = "-- tmEventSetup version"
+    needle = "-- tmEventSetup"
     versions["tm-eventsetup"] = detect_versions_vx_y_z(ugt_constants_path, needle)
-    needle = "-- VHDL producer version"
+    needle = "-- VHDL producer"
     versions["tm-vhdlproducer"] = detect_versions_vx_y_z(ugt_constants_path, needle)
     #exit(0)
     versions["tm-reporter"] = detect_tm_reporter_version(os.path.join(buildarea, "src", l1menu_html))
