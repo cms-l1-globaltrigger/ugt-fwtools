@@ -63,11 +63,13 @@ ugt-checksynth build_0x1190.cfg
 
 ## Build report
 
-Print textile formatted information to be inserted in redmine issues and wiki.
+Print Markdown or Textile formatted information to be inserted into issues and wiki.
 
 ```bash
 ugt-buildreport build_0x1190.cfg
 ```
+
+Use command line option `--format <type>` to select the output format, e.g. `--format textile` (default is `markdown`).
 
 ## Bundle firmware
 
