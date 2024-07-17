@@ -20,7 +20,7 @@ def run_compile_simlib(questasim_base: str, questasimlib_path: str) -> None:
         # Installation path of questasim (tcl syntax)
         questasim_path = os.path.join(questasim_base, "bin")
         # Path and compile_simlib command of tcl file used in Vivado
-        tcl_compile_cmd = f"compile_simlib -simulator questa -simulator_exec_path {{{questasim_path}}} -family virtex7 -language vhdl -library all -dir {{{questasimlib_path}}}"
+        tcl_compile_cmd = f"compile_simlib -no_systemc_compile -simulator questa -simulator_exec_path {{{questasim_path}}} -family virtex7 -language vhdl -library all -dir {{{questasimlib_path}}}"
         tcl_file = os.path.join(temp_dir, "compile_simlib.tcl")
 
         # Writing commands to tcl file
