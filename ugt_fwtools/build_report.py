@@ -11,6 +11,8 @@ from datetime import datetime
 ALL_FORMATS = ["markdown", "textile"]
 DEFAULT_FORMAT = "markdown"
 
+MP7FW_URL="https://gitlab.cern.ch/cms-l1-globaltrigger/mp7/-/tree/"
+UGT_URL="https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy/tree/"
 
 def detect_tm_reporter_version(filename):
     """Try to detect tm-reporter version from L1Menu-HTML file.
@@ -101,6 +103,9 @@ def main() -> None:
     versions.update(detect_gt_versions(os.path.join(buildarea, "src", "mp7_ugt_legacy", "firmware", "hdl", "packages", "gt_mp7_core_pkg.vhd")))
     vivado_version = config.get("vivado", "version")
 
+    mp7fw_tag_url=f"{MP7FW_URL}{mp7fw_tag}"
+    ugt_tag_url=f"{UGT_URL}{ugt_tag}"
+
     table = [
         ("Menu", menu_name),
         ("Build", build_id),
@@ -111,8 +116,8 @@ def main() -> None:
         ("Vivado", vivado_version),
         ("Build area", buildarea),
         ("Menu url", menu_location),
-        ("MP7 tag", mp7fw_tag),
-        ("uGT tag", ugt_tag),
+        ("MP7 tag", mp7fw_tag_url),
+        ("uGT tag", ugt_tag_url),
         ("uGT", versions["GT"]),
         ("FRAME", versions["FRAME"]),
         ("FDL", versions["FDL_FW"]),
@@ -150,6 +155,10 @@ def main() -> None:
     elif args.format == "markdown":
         for row in table:
             print((" - **{0}**: {1}".format(*row)))
+
+        menu_name=f"[{menu_name}]({menu_location})"
+        mp7fw_tag=f"[{mp7fw_tag}]({MP7FW_URL}{mp7fw_tag})"
+        ugt_tag=f"[{ugt_tag}]({UGT_URL}{ugt_tag})"
 
         items = [
             menu_name,
