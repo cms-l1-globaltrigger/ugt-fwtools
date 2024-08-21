@@ -8,7 +8,7 @@ import re
 import os
 from datetime import datetime
 
-ALL_FORMATS = ["markdown", "textile"]
+ALL_FORMATS = ["markdown", "textfile"]
 DEFAULT_FORMAT = "markdown"
 
 MP7FW_URL="https://gitlab.cern.ch/cms-l1-globaltrigger/mp7/-/tree/"
