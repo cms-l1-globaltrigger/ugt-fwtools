@@ -34,13 +34,6 @@ def detect_versions_vx_y_z(filename, needle):
     VHDL files. Returns version string or None if no information was found.
     """
     with open(filename, "r") as fp:
-        #line = fp.readline()
-        #while(line):
-            #if line.strip().startswith(needle):
-                #line2 = fp.readline()
-                #return line2.strip(" -v").strip()
-            #else:
-                #line = fp.readline()
 
         for line in fp:
             if line.strip().lower().startswith(needle.lower()):
