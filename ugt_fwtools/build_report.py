@@ -133,6 +133,10 @@ def main() -> None:
         for row in table:
             print(("|_<.{0} |{1} |".format(*row)))
 
+        menu_name=f'"{menu_name}":{menu_location}'
+        mp7fw_tag=f'"{mp7fw_tag}":{mp7fw_tag_url}'
+        ugt_tag=f'"{ugt_tag}":{ugt_tag_url}'
+
         items = [
             menu_name,
             f"@{build_id}@",
@@ -156,9 +160,9 @@ def main() -> None:
         for row in table:
             print((" - **{0}**: {1}".format(*row)))
 
-        menu_name=f"[{menu_name}]({menu_location})"
-        mp7fw_tag=f"[{mp7fw_tag}]({MP7FW_URL}{mp7fw_tag})"
-        ugt_tag=f"[{ugt_tag}]({UGT_URL}{ugt_tag})"
+        menu_name=f'[{menu_name}]({menu_location})'
+        mp7fw_tag=f'[{mp7fw_tag}]({mp7fw_tag_url})'
+        ugt_tag=f'[{ugt_tag}]({ugt_tag_url})'
 
         items = [
             menu_name,
