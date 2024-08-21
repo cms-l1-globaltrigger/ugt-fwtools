@@ -10,13 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2024-08-21
 
 ### Changed
-- merged manual_workflow and markdown_format
+- merged dev_0.7.0, manual_workflow and markdown_format
 
-## [0.7.0] - 2024-06-21
+## [0.7.0] - 2024-07-17
+
+### Added
+- option to synthesize only a subset of modules
+- markdown formatted build report
 
 ### Changed
-- added script for sythesis of only one module (synthesize_only_one_module.py)
-- renamed script synth_1_module.py to resynthesize_one_module.py 
+- renamed script synth_1_module.py to resynthesize_one_module.py
+
+### Fixed
+- detecting tmEvetnSetup and tm-vhdlproducer version in new and old VHDL files
 
 ## [0.6.0] - 2024-03-15
 

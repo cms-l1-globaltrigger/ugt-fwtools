@@ -20,10 +20,10 @@ def detect_tm_reporter_version(filename):
     Required format:
     <meta name="generator" content="tm-reporter 2.7.2">
     """
-    regex = re.compile(r'^.*tm-reporter\s+(\d+\.\d+\.\d+)')
+    regex = re.compile(r'tm-reporter\s+(\d+\.\d+\.\d+)')
     with open(filename, "rt") as fp:
         for line in fp:
-            m = regex.match(line)
+            m = regex.search(line)
             if m:
                 return m.group(1)
     return None
@@ -34,13 +34,20 @@ def detect_versions_vx_y_z(filename, needle):
     VHDL files. Returns version string or None if no information was found.
     """
     with open(filename, "r") as fp:
-        line = fp.readline()
-        while(line):
-            if line.strip().startswith(needle):
+        #line = fp.readline()
+        #while(line):
+            #if line.strip().startswith(needle):
+                #line2 = fp.readline()
+                #return line2.strip(" -v").strip()
+            #else:
+                #line = fp.readline()
+
+        for line in fp:
+            if line.strip().lower().startswith(needle.lower()):
                 line2 = fp.readline()
-                return line2.strip(" -v").strip()
-            else:
-                line = fp.readline()
+                m = re.search(r"(\d+\.\d+\.\d+)", line2)
+                if m:
+                    return m.group(1)
     return None
 
 
@@ -94,11 +101,8 @@ def main() -> None:
 
     versions = {}
     ugt_constants_path = os.path.join(buildarea, "src", "module_0", "vhdl_snippets", "ugt_constants.vhd")
-    needle = "-- tmEventSetup version"
-    versions["tm-eventsetup"] = detect_versions_vx_y_z(ugt_constants_path, needle)
-    needle = "-- VHDL producer version"
-    versions["tm-vhdlproducer"] = detect_versions_vx_y_z(ugt_constants_path, needle)
-    #exit(0)
+    versions["tm-eventsetup"] = detect_versions_vx_y_z(ugt_constants_path, needle="-- tmEventSetup")
+    versions["tm-vhdlproducer"] = detect_versions_vx_y_z(ugt_constants_path, needle="-- VHDL producer")
     versions["tm-reporter"] = detect_tm_reporter_version(os.path.join(buildarea, "src", l1menu_html))
     versions.update(detect_gt_versions(os.path.join(buildarea, "src", "mp7_ugt_legacy", "firmware", "hdl", "packages", "gt_mp7_core_pkg.vhd")))
     vivado_version = config.get("vivado", "version")

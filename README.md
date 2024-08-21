@@ -32,7 +32,7 @@ Use command line option `--ugttag <tag>` to run with a different ugt tag or bran
 
 To persist the simulation results use option `--output <dir>`.
 
-## Synthesis (6 modules)
+## Synthesis (all modules)
 
 ```bash
 ugt-synthesize sample.xml --build 0x1190
@@ -40,13 +40,14 @@ ugt-synthesize sample.xml --build 0x1190
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
 
-## Synthesis of only one module
+## Synthesis (subset of modules)
 
 ```bash
-ugt-synth-only-one sample.xml --build 0x1190 --module_nr 2
+ugt-synthesize sample.xml --build 0x1190 --modules 1,4-5
 ```
 
-Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
+Use command line option `-m|--modules <list>` to synthesize only a subset of modules by supplying a comma separted list,
+e.g. `1`, `2,4,5`, `0-2`, or `0,2-4`.
 
 ## Resynthesis of an existing module
 
@@ -62,11 +63,13 @@ ugt-checksynth build_0x1190.cfg
 
 ## Build report
 
-Print textile formatted information to be inserted in redmine issues and wiki.
+Print Markdown or Textile formatted information to be inserted into issues and wiki.
 
 ```bash
 ugt-buildreport build_0x1190.cfg
 ```
+
+Use command line option `--format <type>` to select the output format, e.g. `--format textile` (default is `markdown`).
 
 ## Bundle firmware
 

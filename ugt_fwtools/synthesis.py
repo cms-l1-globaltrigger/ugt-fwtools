@@ -66,6 +66,13 @@ vhdl_snippets: List[str] = [
 ]
 
 
+def modules_t(value: str) -> list:
+    try:
+        return utils.parse_range(value)
+    except Exception:
+        raise RuntimeError(f"invalid module ids: {value!r}")
+
+
 def raw_build(build: str) -> str:
     """Return build id without hex prefix."""
     return format(int(build, 16), "04x")
@@ -167,7 +174,7 @@ def write_build_config(filename: str, args) -> None:
     config.set("menu", "build", utils.build_t(args.build))
     config.set("menu", "name", args.menu_name)
     config.set("menu", "location", args.xml_uri)
-    config.set("menu", "modules", args.modules)
+    config.set("menu", "modules", args.n_modules)
 
     config.add_section("ipbb")
     config.set("ipbb", "version", args.ipbb_version)
@@ -213,6 +220,7 @@ def parse_args():
     parser.add_argument("--ugttag", metavar="<tag>", default=DefaultUgtTag, help=f"ugt firmware repo: tag or branch name (default is {DefaultUgtTag!r})")
     parser.add_argument("--build", type=utils.build_str_t, required=True, metavar="<version>", help="menu build version (eg. 0x1001) [required]")
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
+    parser.add_argument("-m", "--modules", metavar="<list>", type=modules_t, default=[], help="synthesize only subset of modules (comma separated list)")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
     return parser.parse_args()
 
@@ -299,16 +307,24 @@ def main() -> None:
         logger.error(f"invalid menu_name: {menu.name!r}")
         raise RuntimeError(f"invalid menu_name")
 
-    # Fetch number of menu modules.
-    args.modules = menu.n_modules
-
-    if not args.modules:
+    if not menu.n_modules:
         logger.error("menu contains no modules")
-        raise RuntimeError("no modules")
+        raise RuntimeError("menu contains no modules")
+
+    # Fetch number of menu modules.
+    args.n_modules = menu.n_modules
+    module_ids = list(range(menu.n_modules))
+
+    # Check and apply module filter (eg. `-m=2,4`)
+    if args.modules:
+        for module_id in args.modules:
+            if module_id not in module_ids:
+                raise RuntimeError(f"invalid module id: {module_id!r}")
+        module_ids = args.modules
 
     ipbb_src_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", args.project_type, "firmware"))
 
-    for module_id in range(args.modules):
+    for module_id in module_ids:
         module_name = f"module_{module_id}"
         ipbb_module_dir = os.path.join(args.ipbb_dir, module_name)
 
