@@ -8,9 +8,11 @@ import re
 import os
 from datetime import datetime
 
-ALL_FORMATS = ["markdown", "textile"]
+ALL_FORMATS = ["markdown", "textfile"]
 DEFAULT_FORMAT = "markdown"
 
+MP7FW_URL="https://gitlab.cern.ch/cms-l1-globaltrigger/mp7/-/tree/"
+UGT_URL="https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy/tree/"
 
 def detect_tm_reporter_version(filename):
     """Try to detect tm-reporter version from L1Menu-HTML file.
@@ -32,6 +34,7 @@ def detect_versions_vx_y_z(filename, needle):
     VHDL files. Returns version string or None if no information was found.
     """
     with open(filename, "r") as fp:
+
         for line in fp:
             if line.strip().lower().startswith(needle.lower()):
                 line2 = fp.readline()
@@ -97,6 +100,9 @@ def main() -> None:
     versions.update(detect_gt_versions(os.path.join(buildarea, "src", "mp7_ugt_legacy", "firmware", "hdl", "packages", "gt_mp7_core_pkg.vhd")))
     vivado_version = config.get("vivado", "version")
 
+    mp7fw_tag_url=f"{MP7FW_URL}{mp7fw_tag}"
+    ugt_tag_url=f"{UGT_URL}{ugt_tag}"
+
     table = [
         ("Menu", menu_name),
         ("Build", build_id),
@@ -107,8 +113,8 @@ def main() -> None:
         ("Vivado", vivado_version),
         ("Build area", buildarea),
         ("Menu url", menu_location),
-        ("MP7 tag", mp7fw_tag),
-        ("uGT tag", ugt_tag),
+        ("MP7 tag", mp7fw_tag_url),
+        ("uGT tag", ugt_tag_url),
         ("uGT", versions["GT"]),
         ("FRAME", versions["FRAME"]),
         ("FDL", versions["FDL_FW"]),
@@ -118,11 +124,14 @@ def main() -> None:
         ("tm-reporter", versions["tm-reporter"]),
     ]
 
-    print("Insert into ISSUE description:\n")
-
-    if args.format == "textile":
+    if args.format == "textfile":
+        print("\nInsert into ISSUE description (textfile format):\n")
         for row in table:
             print(("|_<.{0} |{1} |".format(*row)))
+
+        menu_name=f'"{menu_name}":{menu_location}'
+        mp7fw_tag=f'"{mp7fw_tag}":{mp7fw_tag_url}'
+        ugt_tag=f'"{ugt_tag}":{ugt_tag_url}'
 
         items = [
             menu_name,
@@ -139,15 +148,30 @@ def main() -> None:
             f"created on *{hostname}*",
             datetime.now().strftime("%Y-%m-%d"),
         ]
-        print("\nPrepend BITFILES table:\n")
+        print("\nPrepend BITFILES table (textfile format):\n")
         print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
         print(("|{0} |".format(" |".join([format(item) for item in items]))))
+        print("\n")
 
     elif args.format == "markdown":
+        print("\nInsert into ISSUE description (markdown format):\n")
         for row in table:
             print((" - **{0}**: {1}".format(*row)))
 
+        menu_name=f'[{menu_name}]({menu_location})'
+        mp7fw_tag=f'[{mp7fw_tag}]({mp7fw_tag_url})'
+        ugt_tag=f'[{ugt_tag}]({ugt_tag_url})'
+
         items = [
+            menu_name,
+            f"`{build_id}`",
+            username,
+            "#",
+            f"created on **{hostname}**",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+
+        items_all = [
             menu_name,
             f"`{build_id}`",
             username,
@@ -162,10 +186,17 @@ def main() -> None:
             f"created on **{hostname}**",
             datetime.now().strftime("%Y-%m-%d"),
         ]
-        print("\nPrepend BITFILES table:\n")
+
+        print("\nPrepend BITFILES table (markdown format, selected items):\n")
+        print("|Menu tag |Build |Creator |Issue |Remarks |Date |")
+        print("|---------|------|--------|------|--------|-----|")
+        print("|{0} |".format(" |".join([format(item) for item in items])))
+
+        print("\nPrepend BITFILES table (markdown format, all items):\n")
         print("|Menu tag |Build |Creator |Vivado |MP7 tag |uGT tag |uGT |Frame |GTL |FDL |Issue |Remarks |Date |")
         print("|---------|------|--------|-------|--------|--------|----|------|----|----|------|--------|-----|")
-        print("|{0} |".format(" |".join([format(item) for item in items])))
+        print("|{0} |".format(" |".join([format(item) for item in items_all])))
+        print("\n")
 
 
 if __name__ == "__main__":
