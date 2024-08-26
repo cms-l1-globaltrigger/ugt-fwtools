@@ -1,3 +1,31 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "ugt-fwtools"
+authors = [
+    {name = "Bernhard Arnold", email = "bernhard.arnold@cern.ch"},
+    {name = "Herbert Bergauer", email = "herbert.bergauer@cern.ch"},
+]
+description = "Firmware build tools for Phase-1 uGT"
+readme = "README.md"
+requires-python = ">= 3.8, <3.12"
+dependencies = [
+  "ipbb @ https://github.com/ipbus/ipbb/archive/dev/2023a.tar.gz",
+  "lxml==5.2.2",
+]
+dynamic = ["version"]
+
+[project.scripts]
+    ugt-archive = "ugt_fwtools.archive_project:main"
+    ugt-compile-simlib = "ugt_fwtools.compile_simlib:main"
+    ugt-checksynth = "ugt_fwtools.checksynth:main"
+    ugt-fwpacker = "ugt_fwtools.fwpacker:main"
+    ugt-buildreport = "ugt_fwtools.build_report:main"
+    ugt-simulate = "ugt_fwtools.simulation:main"
+    ugt-synthesize = "ugt_fwtools.synthesis:main"
+    ugt-implement-module = "ugt_fwtools.synth_1_module:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "ugt_fwtools.__version__"}
