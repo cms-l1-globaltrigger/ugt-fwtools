@@ -8,7 +8,7 @@ import re
 import os
 from datetime import datetime
 
-ALL_FORMATS = ["markdown", "textfile"]
+ALL_FORMATS = ["markdown", "textile"]
 DEFAULT_FORMAT = "markdown"
 
 MP7FW_URL="https://gitlab.cern.ch/cms-l1-globaltrigger/mp7/-/tree/"
@@ -124,8 +124,8 @@ def main() -> None:
         ("tm-reporter", versions["tm-reporter"]),
     ]
 
-    if args.format == "textfile":
-        print("\nInsert into ISSUE description (textfile format):\n")
+    if args.format == "textile":
+        print("\nInsert into ISSUE description (textile format):\n")
         for row in table:
             print(("|_<.{0} |{1} |".format(*row)))
 
@@ -148,7 +148,7 @@ def main() -> None:
             f"created on *{hostname}*",
             datetime.now().strftime("%Y-%m-%d"),
         ]
-        print("\nPrepend BITFILES table (textfile format):\n")
+        print("\nPrepend BITFILES table (textile format):\n")
         print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
         print(("|{0} |".format(" |".join([format(item) for item in items]))))
         print("\n")

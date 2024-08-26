@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - option to synthesize only a subset of modules
-- markdown/textfile formatted build report
+- markdown/textile formatted build report
 
 ### Changed
 - renamed script synth_1_module.py to resynthesize_one_module.py
