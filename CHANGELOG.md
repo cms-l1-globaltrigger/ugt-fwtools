@@ -7,19 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.0] - 2024-08-21
-
-### Changed
-- merged dev_0.7.0, manual_workflow and markdown_format
-
-## [0.7.0] - 2024-07-17
+## [0.7.0] - 2024-08-23
 
 ### Added
 - option to synthesize only a subset of modules
-- markdown formatted build report
+- markdown/textfile formatted build report
 
 ### Changed
 - renamed script synth_1_module.py to resynthesize_one_module.py
+- merged branches manual_workflow and markdown_format
 
 ### Fixed
 - detecting tmEvetnSetup and tm-vhdlproducer version in new and old VHDL files
@@ -69,8 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - migrated scripts from `ugt_mp7_legacy/scripts` repo.
 
-[Unreleased]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.0...HEAD
-[0.8.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.7.0...0.8.0
+[Unreleased]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.7.0...HEAD
 [0.7.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.4.0...0.5.0
