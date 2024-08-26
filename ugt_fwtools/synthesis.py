@@ -147,14 +147,34 @@ def create_module(module_id: int, module_name: str, args) -> None:
     subprocess.run(["ipbb", "proj", "create", "vivado", module_name, f"{args.board_type}:../{args.project_type}"], cwd=args.ipbb_dir).check_returncode()
 
 
-def implement_module(module_id: int, module_name: str, args) -> None:
-    """Run module implementation in screen session."""
+def create_implement_command(module_id: int, module_name: str, args) -> str:
     # IPBB commands: running IPBB project, synthesis and implementation, creating bitfile
     cmd_ipbb_project = "ipbb vivado generate-project --single"  # workaround to prevent "hang-up" in make-project with IPBB v0.5.2
     cmd_ipbb_synth = "ipbb vivado synth impl package"
 
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
     command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
+
+    return command
+
+
+def create_manual_build_script(module_id: int, module_name: str, args) -> None:
+    """Write module implementation script."""
+    command = create_implement_command(module_id, module_name, args)
+
+    # create run script for manual mode
+    ipbb_dest_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", module_name))
+    filename = os.path.join(ipbb_dest_fw_dir, "run_build_synth.sh")
+    logger.info("create manual script for module %s: %s ...", module_id, filename)
+    with open(filename, "wt") as fp:
+        fp.write("#!/bin/bash\n")
+        fp.write(command)
+        fp.write("\n")
+
+
+def implement_module(module_id: int, module_name: str, args) -> None:
+    """Run module implementation in screen session."""
+    command = create_implement_command(module_id, module_name, args)
 
     session = f"build_{args.project_type}_{args.build}_{module_id}"
     logger.info("starting screen session %r for module %s ...", session, module_id)
@@ -221,6 +241,7 @@ def parse_args():
     parser.add_argument("--build", type=utils.build_str_t, required=True, metavar="<version>", help="menu build version (eg. 0x1001) [required]")
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
     parser.add_argument("-m", "--modules", metavar="<list>", type=modules_t, default=[], help="synthesize only subset of modules (comma separated list)")
+    parser.add_argument("--manual", action="store_true", help="do not run synthesis in screen sessions (manual mode)")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
     return parser.parse_args()
 
@@ -357,20 +378,24 @@ def main() -> None:
 
         create_module(module_id, module_name, args)
 
-        logger.info("===========================================================================")
-        logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
-
-        implement_module(module_id, module_name, args)
+        if args.manual:
+            create_manual_build_script(module_id, module_name, args)
+        else:
+            logger.info("===========================================================================")
+            logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
+            implement_module(module_id, module_name, args)
 
     # list running screen sessions
     logger.info("===========================================================================")
-    show_screen_sessions()
+    if not args.manual:
+        show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
     write_build_config(config_filename, args)
 
     logger.info("done.")
+
 
 if __name__ == "__main__":
     main()
