@@ -8,14 +8,11 @@ import re
 import os
 from datetime import datetime
 
+ALL_FORMATS = ["markdown", "textile"]
+DEFAULT_FORMAT = "markdown"
 
-def textile_strong(s):
-    return f"*{s}*"
-
-
-def textile_pre_inline(s):
-    return f"@{s}@"
-
+MP7FW_URL="https://gitlab.cern.ch/cms-l1-globaltrigger/mp7/-/tree/"
+UGT_URL="https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy/tree/"
 
 def detect_tm_reporter_version(filename):
     """Try to detect tm-reporter version from L1Menu-HTML file.
@@ -23,10 +20,10 @@ def detect_tm_reporter_version(filename):
     Required format:
     <meta name="generator" content="tm-reporter 2.7.2">
     """
-    regex = re.compile(r'^.*tm-reporter\s+(\d+\.\d+\.\d+)')
+    regex = re.compile(r'tm-reporter\s+(\d+\.\d+\.\d+)')
     with open(filename, "rt") as fp:
         for line in fp:
-            m = regex.match(line)
+            m = regex.search(line)
             if m:
                 return m.group(1)
     return None
@@ -37,14 +34,14 @@ def detect_versions_vx_y_z(filename, needle):
     VHDL files. Returns version string or None if no information was found.
     """
     with open(filename, "r") as fp:
-        line = fp.readline()
-        while(line):
-            if line.strip().startswith(needle):
-                line2=fp.readline()
-                return line2.strip(" -v").strip()
-            else:
-                line=fp.readline()
+        for line in fp:
+            if line.strip().lower().startswith(needle.lower()):
+                line2 = fp.readline()
+                m = re.search(r"(\d+\.\d+\.\d+)", line2)
+                if m:
+                    return m.group(1)
     return None
+
 
 def detect_gt_versions(filename):
     """Try to detect uGT, FDL and GTL versions from VHDL statements. Returns a
@@ -70,6 +67,7 @@ def detect_gt_versions(filename):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", help="build config file (*.cfg)")
+    parser.add_argument("--format", choices=ALL_FORMATS, default=DEFAULT_FORMAT, help="select output format (default is markdown)")
     return parser.parse_args()
 
 
@@ -95,14 +93,14 @@ def main() -> None:
 
     versions = {}
     ugt_constants_path = os.path.join(buildarea, "src", "module_0", "vhdl_snippets", "ugt_constants.vhd")
-    needle = "-- tmEventSetup version"
-    versions["tm-eventsetup"] = detect_versions_vx_y_z(ugt_constants_path, needle)
-    needle = "-- VHDL producer version"
-    versions["tm-vhdlproducer"] = detect_versions_vx_y_z(ugt_constants_path, needle)
-    #exit(0)
+    versions["tm-eventsetup"] = detect_versions_vx_y_z(ugt_constants_path, needle="-- tmEventSetup")
+    versions["tm-vhdlproducer"] = detect_versions_vx_y_z(ugt_constants_path, needle="-- VHDL producer")
     versions["tm-reporter"] = detect_tm_reporter_version(os.path.join(buildarea, "src", l1menu_html))
     versions.update(detect_gt_versions(os.path.join(buildarea, "src", "mp7_ugt_legacy", "firmware", "hdl", "packages", "gt_mp7_core_pkg.vhd")))
     vivado_version = config.get("vivado", "version")
+
+    mp7fw_tag_url=f"{MP7FW_URL}{mp7fw_tag}"
+    ugt_tag_url=f"{UGT_URL}{ugt_tag}"
 
     table = [
         ("Menu", menu_name),
@@ -114,8 +112,8 @@ def main() -> None:
         ("Vivado", vivado_version),
         ("Build area", buildarea),
         ("Menu url", menu_location),
-        ("MP7 tag", mp7fw_tag),
-        ("uGT tag", ugt_tag),
+        ("MP7 tag", mp7fw_tag_url),
+        ("uGT tag", ugt_tag_url),
         ("uGT", versions["GT"]),
         ("FRAME", versions["FRAME"]),
         ("FDL", versions["FDL_FW"]),
@@ -125,29 +123,79 @@ def main() -> None:
         ("tm-reporter", versions["tm-reporter"]),
     ]
 
-    print("Insert into ISSUE description:\n")
+    if args.format == "textile":
+        print("\nInsert into ISSUE description (textile format):\n")
+        for row in table:
+            print(("|_<.{0} |{1} |".format(*row)))
 
-    for row in table:
-        print(("|_<.{0} |{1} |".format(*row)))
+        menu_name=f'"{menu_name}":{menu_location}'
+        mp7fw_tag=f'"{mp7fw_tag}":{mp7fw_tag_url}'
+        ugt_tag=f'"{ugt_tag}":{ugt_tag_url}'
 
-    items = [
-        menu_name,
-        textile_pre_inline(build_id),
-        username,
-        vivado_version,
-        mp7fw_tag,
-        ugt_tag,
-        versions["GT"],
-        versions["FRAME"],
-        versions["GTL_FW"],
-        versions["FDL_FW"],
-        "#",
-        f"created on *{hostname}*",
-        datetime.now().strftime("%Y-%m-%d"),
-    ]
-    print("\nPrepend BITFILES table:\n")
-    print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
-    print(("|{0} |".format(" |".join(items))))
+        items = [
+            menu_name,
+            f"@{build_id}@",
+            username,
+            vivado_version,
+            mp7fw_tag,
+            ugt_tag,
+            versions["GT"],
+            versions["FRAME"],
+            versions["GTL_FW"],
+            versions["FDL_FW"],
+            "#",
+            f"created on *{hostname}*",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+        print("\nPrepend BITFILES table (textile format):\n")
+        print("|_.Menu tag |_.Build |_.Creator |_.Vivado |_.MP7 tag |_.uGT tag |_.uGT |_.Frame |_.GTL |_.FDL |_.Issue |_.Remarks |_.Date |")
+        print(("|{0} |".format(" |".join([format(item) for item in items]))))
+        print("\n")
+
+    elif args.format == "markdown":
+        print("\nInsert into ISSUE description (markdown format):\n")
+        for row in table:
+            print((" - **{0}**: {1}".format(*row)))
+
+        menu_name=f'[{menu_name}]({menu_location})'
+        mp7fw_tag=f'[{mp7fw_tag}]({mp7fw_tag_url})'
+        ugt_tag=f'[{ugt_tag}]({ugt_tag_url})'
+
+        items = [
+            menu_name,
+            f"`{build_id}`",
+            username,
+            "#",
+            f"created on **{hostname}**",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+
+        items_all = [
+            menu_name,
+            f"`{build_id}`",
+            username,
+            vivado_version,
+            mp7fw_tag,
+            ugt_tag,
+            versions["GT"],
+            versions["FRAME"],
+            versions["GTL_FW"],
+            versions["FDL_FW"],
+            "#",
+            f"created on **{hostname}**",
+            datetime.now().strftime("%Y-%m-%d"),
+        ]
+
+        print("\nPrepend BITFILES table (markdown format, selected items):\n")
+        print("|Menu tag |Build |Creator |Issue |Remarks |Date |")
+        print("|---------|------|--------|------|--------|-----|")
+        print("|{0} |".format(" |".join([format(item) for item in items])))
+
+        print("\nPrepend BITFILES table (markdown format, all items):\n")
+        print("|Menu tag |Build |Creator |Vivado |MP7 tag |uGT tag |uGT |Frame |GTL |FDL |Issue |Remarks |Date |")
+        print("|---------|------|--------|-------|--------|--------|----|------|----|----|------|--------|-----|")
+        print("|{0} |".format(" |".join([format(item) for item in items_all])))
+        print("\n")
 
 
 if __name__ == "__main__":
