@@ -49,13 +49,13 @@ DefaultIpbusTag: str = "v1.4"
 DefaultMP7Url: str = "https://:@gitlab.cern.ch:8443/cms-l1-globaltrigger/mp7.git"
 """Default URL MP7 FW repo."""
 
-DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt"
+DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 """Default tag MP7 FW repo."""
 
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
 """Default URL for ugt FW repo."""
 
-DefaultUgtTag: str = "v1.22.3"
+DefaultUgtTag: str = "v1.28.0"
 """Default tag for ugt FW repo."""
 
 vhdl_snippets: List[str] = [
@@ -64,6 +64,13 @@ vhdl_snippets: List[str] = [
     "gtl_module_signals.vhd",
     "ugt_constants.vhd",
 ]
+
+
+def modules_t(value: str) -> list:
+    try:
+        return utils.parse_range(value)
+    except Exception:
+        raise RuntimeError(f"invalid module ids: {value!r}")
 
 
 def raw_build(build: str) -> str:
@@ -81,7 +88,7 @@ def start_screen_session(session: str, commands: str) -> None:
 
 def get_ipbb_version() -> str:
     result = subprocess.run(["ipbb", "--version"], stdout=subprocess.PIPE)
-    return result.stdout.decode().split()[-1].strip()  
+    return result.stdout.decode().split()[-1].strip()
 
 
 def download_file_from_url(url: str, filename: str) -> None:
@@ -140,8 +147,7 @@ def create_module(module_id: int, module_name: str, args) -> None:
     subprocess.run(["ipbb", "proj", "create", "vivado", module_name, f"{args.board_type}:../{args.project_type}"], cwd=args.ipbb_dir).check_returncode()
 
 
-def implement_module(module_id: int, module_name: str, args) -> None:
-    """Run module implementation in screen session."""
+def create_implement_command(module_id: int, module_name: str, args) -> str:
     # IPBB commands: running IPBB project, synthesis and implementation, creating bitfile
     cmd_ipbb_project = "ipbb vivado generate-project --single"  # workaround to prevent "hang-up" in make-project with IPBB v0.5.2
     cmd_ipbb_synth = "ipbb vivado synth"
@@ -149,6 +155,27 @@ def implement_module(module_id: int, module_name: str, args) -> None:
 
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
     command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth} && {cmd_ipbb_impl}'
+
+    return command
+
+
+def create_manual_build_script(module_id: int, module_name: str, args) -> None:
+    """Write module implementation script."""
+    command = create_implement_command(module_id, module_name, args)
+
+    # create run script for manual mode
+    ipbb_dest_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", module_name))
+    filename = os.path.join(ipbb_dest_fw_dir, "run_build_synth.sh")
+    logger.info("create manual script for module %s: %s ...", module_id, filename)
+    with open(filename, "wt") as fp:
+        fp.write("#!/bin/bash\n")
+        fp.write(command)
+        fp.write("\n")
+
+
+def implement_module(module_id: int, module_name: str, args) -> None:
+    """Run module implementation in screen session."""
+    command = create_implement_command(module_id, module_name, args)
 
     session = f"build_{args.project_type}_{args.build}_{module_id}"
     logger.info("starting screen session %r for module %s ...", session, module_id)
@@ -168,7 +195,7 @@ def write_build_config(filename: str, args) -> None:
     config.set("menu", "build", utils.build_t(args.build))
     config.set("menu", "name", args.menu_name)
     config.set("menu", "location", args.xml_uri)
-    config.set("menu", "modules", args.modules)
+    config.set("menu", "modules", args.n_modules)
 
     config.add_section("ipbb")
     config.set("ipbb", "version", args.ipbb_version)
@@ -214,6 +241,8 @@ def parse_args():
     parser.add_argument("--ugttag", metavar="<tag>", default=DefaultUgtTag, help=f"ugt firmware repo: tag or branch name (default is {DefaultUgtTag!r})")
     parser.add_argument("--build", type=utils.build_str_t, required=True, metavar="<version>", help="menu build version (eg. 0x1001) [required]")
     parser.add_argument("--board", metavar="<type>", default=DefaultBoardType, choices=list(BoardAliases.keys()), help=f"set board type (default is {DefaultBoardType!r})")
+    parser.add_argument("-m", "--modules", metavar="<list>", type=modules_t, default=[], help="synthesize only subset of modules (comma separated list)")
+    parser.add_argument("--manual", action="store_true", help="do not run synthesis in screen sessions (manual mode)")
     parser.add_argument("-p", "--path", metavar="<path>", default=DefaultFirmwareDir, type=os.path.abspath, help=f"fw build path (default is {DefaultFirmwareDir!r})")
     return parser.parse_args()
 
@@ -244,7 +273,7 @@ def main() -> None:
     # Vivado settings
     args.settings64 = os.path.join(args.vivado_base_dir, args.vivado, "settings64.sh")
     if not os.path.isfile(args.settings64):
-        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")        
+        logger.error(f"no such Xilinx Vivado settings file {args.settings64!r}\n")
         logger.error(f"  check if Xilinx Vivado {args.vivado} is installed on this machine.")
         raise RuntimeError(f"missing settings file {args.settings64!r}")
 
@@ -300,16 +329,24 @@ def main() -> None:
         logger.error(f"invalid menu_name: {menu.name!r}")
         raise RuntimeError(f"invalid menu_name")
 
-    # Fetch number of menu modules.
-    args.modules = menu.n_modules
-
-    if not args.modules:
+    if not menu.n_modules:
         logger.error("menu contains no modules")
-        raise RuntimeError("no modules")
+        raise RuntimeError("menu contains no modules")
+
+    # Fetch number of menu modules.
+    args.n_modules = menu.n_modules
+    module_ids = list(range(menu.n_modules))
+
+    # Check and apply module filter (eg. `-m=2,4`)
+    if args.modules:
+        for module_id in args.modules:
+            if module_id not in module_ids:
+                raise RuntimeError(f"invalid module id: {module_id!r}")
+        module_ids = args.modules
 
     ipbb_src_fw_dir = os.path.abspath(os.path.join(args.ipbb_dir, "src", args.project_type, "firmware"))
 
-    for module_id in range(args.modules):
+    for module_id in module_ids:
         module_name = f"module_{module_id}"
         ipbb_module_dir = os.path.join(args.ipbb_dir, module_name)
 
@@ -342,20 +379,24 @@ def main() -> None:
 
         create_module(module_id, module_name, args)
 
-        logger.info("===========================================================================")
-        logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
-
-        implement_module(module_id, module_name, args)
+        if args.manual:
+            create_manual_build_script(module_id, module_name, args)
+        else:
+            logger.info("===========================================================================")
+            logger.info("running IPBB project, synthesis and implementation, creating bitfile for module %s ...", module_id)
+            implement_module(module_id, module_name, args)
 
     # list running screen sessions
     logger.info("===========================================================================")
-    show_screen_sessions()
+    if not args.manual:
+        show_screen_sessions()
 
     # Write build configuration file
     config_filename = os.path.join(args.ipbb_dir, f"build_{args.build}.cfg")
     write_build_config(config_filename, args)
 
     logger.info("done.")
+
 
 if __name__ == "__main__":
     main()

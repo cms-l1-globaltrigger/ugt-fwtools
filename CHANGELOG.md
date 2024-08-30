@@ -7,19 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-##[0.7.0] - 2024-08-23
-###Added
+## [0.7.0] - 2024-08-23
 
-- option -m|--modules to synthesize only a subset of modules
-- option --manual to run without screen sessions
+### Added
+- option `-m|--modules` to synthesize only a subset of modules
+- option `--manual` to run without screen sessions
 - select markdown/textile format for build report
 
-###Changed
-
+### Changed
 - renamed script synth_1_module.py to resynthesize_one_module.py
 
-###Fixed
-
+### Fixed
 - detecting tmEventSetup and tm-vhdlproducer version in new and old VHDL files
 
 ## [0.6.0] - 2024-03-15
