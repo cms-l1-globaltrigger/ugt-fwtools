@@ -144,10 +144,11 @@ def implement_module(module_id: int, module_name: str, args) -> None:
     """Run module implementation in screen session."""
     # IPBB commands: running IPBB project, synthesis and implementation, creating bitfile
     cmd_ipbb_project = "ipbb vivado generate-project --single"  # workaround to prevent "hang-up" in make-project with IPBB v0.5.2
-    cmd_ipbb_synth = "ipbb vivado synth impl package"
+    cmd_ipbb_synth = "ipbb vivado synth"
+    cmd_ipbb_impl = "ipbb vivado impl package"
 
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
-    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
+    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth} && {cmd_ipbb_impl}'
 
     session = f"build_{args.project_type}_{args.build}_{module_id}"
     logger.info("starting screen session %r for module %s ...", session, module_id)
