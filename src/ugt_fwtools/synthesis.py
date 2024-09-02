@@ -22,7 +22,7 @@ BoardAliases: Dict[str, str] = {
 DefaultVivadoVersion = os.getenv("UGT_VIVADO_VERSION", "")
 if not DefaultVivadoVersion:
     logger.error("UGT_VIVADO_VERSION is not defined.")
-    raise RuntimeError("missing variable: UGT_VIVADO_BASE_DIR")
+    raise RuntimeError("missing variable: UGT_VIVADO_VERSION")
 
 VivadoBaseDir = os.getenv("UGT_VIVADO_BASE_DIR", "")
 if not VivadoBaseDir:

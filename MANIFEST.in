@@ -3,6 +3,6 @@ include CHANGELOG.md
 include LICENSE
 include tox.ini
 
-recursive-include ugt_fwtools *.tcl
+recursive-include src/ugt_fwtools *.tcl
 recursive-include tests *.py
 
