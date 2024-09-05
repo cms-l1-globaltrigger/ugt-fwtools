@@ -66,6 +66,12 @@ vhdl_snippets: List[str] = [
 ]
 
 
+def run_command(*args):
+    command = ' '.join(args)
+    logger.info(">$ %s", command)
+    os.system(command)
+
+
 def modules_t(value: str) -> list:
     try:
         return utils.parse_range(value)
@@ -153,8 +159,11 @@ def create_implement_command(module_id: int, module_name: str, args) -> str:
     cmd_ipbb_synth = "ipbb vivado synth"
     cmd_ipbb_impl = "ipbb vivado impl package"
 
+    vivado_fix_cells_path = os.path.join(args.ipbb_dir, "src/mp7_ugt_legacy/scripts/vivado_fix_cells.tcl")
+    cmd_vivado_batch = "vivado -mode batch -source " + vivado_fix_cells_path + " -tclarg {args.ipbb_dir} {module_id}"
+
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
-    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth} && {cmd_ipbb_impl}'
+    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}; {cmd_vivado_batch}; {cmd_ipbb_impl}'
 
     return command
 
