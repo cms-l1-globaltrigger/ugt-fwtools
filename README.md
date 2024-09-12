@@ -22,10 +22,28 @@ source ${UGT_VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
 pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.0
 ```
 
+## Preface
+
+In the following examples `L1Menu_sample-d1.xml` refers to an XML file located within
+a menu distribution of the following layout.
+
+```
+L1Menu_sample-d1/
+├── testvectors
+├── vhdl
+└── xml
+    └── L1Menu_sample-d1.xml
+```
+
+Official menu distributions can be found at https://github.com/cms-l1-globaltrigger/cms-l1-menu/
+
+All scripts support both local files and public remote http[s] resources as input
+for XML files and test vectors.
+
 ## Simulation
 
 ```bash
-ugt-simulate sample.xml --tv sample_ttbar.txt
+ugt-simulate L1Menu_sample-d1.xml --tv sample_ttbar.txt
 ```
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
@@ -35,7 +53,7 @@ To persist the simulation results use option `--output <dir>`.
 ## Synthesis (all modules)
 
 ```bash
-ugt-synthesize sample.xml --build 0x1190
+ugt-synthesize L1Menu_sample-d1.xml --build 0x1190
 ```
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
@@ -43,7 +61,7 @@ Use command line option `--ugttag <tag>` to run with a different ugt tag or bran
 ## Synthesis (subset of modules)
 
 ```bash
-ugt-synthesize sample.xml --build 0x1190 --modules 1,4-5
+ugt-synthesize L1Menu_sample-d1.xml --build 0x1190 --modules 1,4-5
 ```
 
 Use command line option `-m|--modules <list>` to synthesize only a subset of modules by supplying a comma separted list,
@@ -60,6 +78,8 @@ ugt-implement-module 2 build_0x1190.cfg   # resynthesize module number 2
 ```bash
 ugt-checksynth build_0x1190.cfg
 ```
+
+Use command line option `-o <file>` to write output to a file, e.g. `-o result.log`.
 
 ## Build report
 
