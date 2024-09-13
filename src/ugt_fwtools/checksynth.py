@@ -8,6 +8,7 @@
 
 import argparse
 import configparser
+import logging
 import os
 import sys
 
@@ -33,12 +34,11 @@ class Analyzer:
     def __init__(self) -> None:
         self.utilization: Dict[int, List[UtilizationRow]] = {}
         # Options
-        self.show_all = False
-        self.show_criticals = False
-        self.show_errors = False
-        self.show_warnings = False
-        self.show_violations = False
-        self.messages: List[str] = []
+        self.show_all: bool = False
+        self.show_criticals: bool = False
+        self.show_errors: bool = False
+        self.show_warnings: bool = False
+        self.show_violations: bool = False
 
     def find_errors(self, module_path: str, module_id: int) -> None:
         """Parse log files."""
@@ -61,13 +61,13 @@ class Analyzer:
         runme_log_impl = os.path.join(impl_path, "runme.log")
 
         if not os.path.isfile(runme_log_synth):
-            logger.error(f"no such file {runme_log_synth!r}")        
+            logger.error(f"no such file {runme_log_synth!r}")
             raise RuntimeError(f"missing {runme_log_synth!r}")
 
         if not os.path.isfile(runme_log_impl):
-            logger.error(f"no such file {runme_log_impl!r}")        
+            logger.error(f"no such file {runme_log_impl!r}")
             raise RuntimeError(f"missing {runme_log_impl!r}")
-        
+
         logger.info("===========================================================================")
         logger.info(f"Module #{module_id}")
         logger.info("===========================================================================")
@@ -76,7 +76,7 @@ class Analyzer:
         # opens file as .log
         with open(runme_log_synth, "rt") as fp:
             for line in fp:
-                line = line.lstrip()
+                line = line.strip()
                 # checks in current line if error is at the beginning
                 if line.startswith("ERROR"):
                     errors += 1
@@ -105,7 +105,7 @@ class Analyzer:
         # opens file as .log
         with open(runme_log_impl, "rt") as fp:
             for line in fp:
-                line = line.lstrip()
+                line = line.strip()
                 # checks in current line if error is at the beginning
                 if line.startswith("ERROR"):
                     errors += 1
@@ -132,7 +132,7 @@ class Analyzer:
                         logger.info("---------------------------------------------------------------------------")
 
         #
-        # Parse timing summary\
+        # Parse timing summary
         #
 
         # Try to locate timing summary, first try
@@ -146,11 +146,7 @@ class Analyzer:
 
         # Parse timing summary
         with open(timing_summary, "rt") as fp:
-            while True:
-                line = fp.readline()
-                # checks if line is empty (EOF)!
-                if not line:
-                    break
+            for line in fp:
                 # checks for VIOLATED
                 if "VIOLATED" in line:
                     # adds 1 to counter if found
@@ -169,19 +165,15 @@ class Analyzer:
 
         message = f"ERRORS: {errors}"
         logger.error(message) if errors else logger.info(message)
-        self.messages.append(message) if errors else None
 
         message = f"WARNINGS: {warnings}"
         logger.warning(message) if warnings else logger.info(message)
-        self.messages.append(message) if warnings else None
 
         message = f"CRITICAL WARNINGS: {crit_warnings}"
         logger.critical(message) if crit_warnings else logger.info(message)
-        self.messages.append(message) if crit_warnings else None
 
         message = f"VIOLATED: {violated_counts}"
         logger.error(message) if violated_counts else logger.info(message)
-        self.messages.append(message) if violated_counts else None
 
         self.get_utilization(impl_path, module_id)
         self.check_bitfile(os.path.join(module_path, "products"), module_id)
@@ -240,12 +232,6 @@ class Analyzer:
         logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         logger.info("")
 
-    def write_logifle(self, filename: str) -> None:
-        with open(os.path.abspath(filename), "w+") as fp:
-            for message in self.messages:
-                fp.write(message)
-                fp.write(os.linesep)
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Check synthesis result logs")
@@ -265,6 +251,15 @@ def main() -> None:
 
     # Parse command line arguments.
     args = parse_args()
+
+    # Optional logfile
+    if args.o:
+        file_handler = logging.FileHandler(args.o, mode="w")
+        file_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(message)s")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     # Check for exisiting config file.
     if not os.path.isfile(args.config):
@@ -304,9 +299,6 @@ def main() -> None:
         analyzer.find_errors(project_path, index)
 
     analyzer.dump_utilization_report()
-
-    if args.o:
-        analyzer.write_logifle(args.o)
 
 
 if __name__ == "__main__":
