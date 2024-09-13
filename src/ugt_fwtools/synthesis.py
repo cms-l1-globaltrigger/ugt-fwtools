@@ -66,12 +66,6 @@ vhdl_snippets: List[str] = [
 ]
 
 
-def run_command(*args):
-    command = ' '.join(args)
-    logger.info(">$ %s", command)
-    os.system(command)
-
-
 def modules_t(value: str) -> list:
     try:
         return utils.parse_range(value)
