@@ -81,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - migrated scripts from `ugt_mp7_legacy/scripts` repo.
 
 [Unreleased]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.9.0...HEAD
-[0.8.1]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.1...0.9.0
+[0.9.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.1...0.9.0
 [0.8.1]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.6.0...0.7.0
