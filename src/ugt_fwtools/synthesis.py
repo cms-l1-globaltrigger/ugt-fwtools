@@ -150,10 +150,14 @@ def create_module(module_id: int, module_name: str, args) -> None:
 def create_implement_command(module_id: int, module_name: str, args) -> str:
     # IPBB commands: running IPBB project, synthesis and implementation, creating bitfile
     cmd_ipbb_project = "ipbb vivado generate-project --single"  # workaround to prevent "hang-up" in make-project with IPBB v0.5.2
-    cmd_ipbb_synth = "ipbb vivado synth impl package"
+    cmd_ipbb_synth = "ipbb vivado synth"
+    cmd_ipbb_impl = "ipbb vivado impl package"
+
+    vivado_fix_cells_path = os.path.join(args.ipbb_dir, "src/mp7_ugt_legacy/scripts/vivado_fix_cells.tcl")
+    cmd_vivado_batch = f'vivado -mode batch -source {vivado_fix_cells_path} -tclarg {args.ipbb_dir} {module_id}'
 
     # Set variable "module_id" for tcl script (l1menu_files.tcl in uGT_algo.dep)
-    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth}'
+    command = f'cd; source {args.settings64}; cd {args.ipbb_dir}/proj/{module_name}; module_id={module_id} {cmd_ipbb_project} && {cmd_ipbb_synth} && {cmd_vivado_batch} && {cmd_ipbb_impl}'
 
     return command
 
