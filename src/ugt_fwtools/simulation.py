@@ -23,7 +23,9 @@ logger = utils.get_colored_logger(__name__)
 
 IGNORED_ALGOS = [
     "L1_FirstBunchInTrain",
-    "L1_SecondBunchInTrain"
+    "L1_SecondBunchInTrain",
+    "L1_FirstBunchInTrain_50ns",
+    "L1_LastBunchInTrain_50ns"
 ]
 
 TIMEOUT_SEC: float = 60.0
