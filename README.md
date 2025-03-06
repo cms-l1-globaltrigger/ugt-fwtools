@@ -65,7 +65,7 @@ for XML files and test vectors.
 First compile questasimlibs (if not exist) with:
 
 ```bash
-ugt-compile-simlib --questasim /opt/mentor/questa/2021.1_2/questasim --output <home dir>/questasimlibs
+ugt-compile-simlib --questasim $UGT_QUESTASIM_SIM_PATH/questasim --output $UGT_QUESTASIM_LIBS_PATH
 ```
 
 and run simulation with:
