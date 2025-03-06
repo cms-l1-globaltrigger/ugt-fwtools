@@ -20,7 +20,6 @@ export UGT_QUESTASIMLIBS_DIR=<home dir>
 export UGT_QUESTASIM_SIM_PATH=${MODELSIM_ROOT}
 export UGT_QUESTASIM_LIBS_PATH=<home dir>/questasimlibs
 export UGT_BLK_MEM_GEN_VERSION_SIM=blk_mem_gen_v8_4_5
-export UGT_QUESTASIM_SIM_PATH=/opt/mentor/questa/2021.1_2
 export UGT_VIVADO_BASE_DIR=/opt/Xilinx/Vivado
 export UGT_VIVADO_VERSION=2021.2
 source ${UGT_VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
