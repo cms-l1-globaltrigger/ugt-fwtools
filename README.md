@@ -71,7 +71,7 @@ ugt-compile-simlib --questasim $UGT_QUESTASIM_SIM_PATH/questasim --output $UGT_Q
 and run simulation with:
 
 ```bash
-ugt-simulate L1Menu_sample-d1.xml --tv sample_ttbar.txt
+ugt-simulate L1Menu_sample-d1.xml --tv sample_ttbar.txt --ignored
 ```
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
