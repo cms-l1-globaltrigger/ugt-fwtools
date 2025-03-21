@@ -35,11 +35,11 @@ python3.9 -m venv env
 . env/bin/activate
 ```
 
-Installation of ugt-fwtools (current version 0.9.1) with:
+Installation of ugt-fwtools (current version 0.9.2) with:
 
 ```bash
 pip install --upgrade pip
-pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.1
+pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.2
 ```
 
 ## Preface

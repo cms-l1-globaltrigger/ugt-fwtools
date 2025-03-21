@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2025-03-21
+
+### Changes
+- in simulation.py and sythesis.py (DefaultUgtTag)
+
 ## [0.9.1] - 2024-09-25
 
 ### Added
