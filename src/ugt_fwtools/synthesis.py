@@ -55,7 +55,7 @@ DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
 """Default URL for ugt FW repo."""
 
-DefaultUgtTag: str = "v1.28.0"
+DefaultUgtTag: str = "v1.31.1"
 """Default tag for ugt FW repo."""
 
 vhdl_snippets: List[str] = [
