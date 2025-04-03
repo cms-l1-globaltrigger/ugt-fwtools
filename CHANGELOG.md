@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-04-03
+
+### Changes
+- updated IPBB version to dev/2024e (in pyproject.toml)
+
 ## [0.9.2] - 2025-03-21
 
 ### Changes

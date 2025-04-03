@@ -12,7 +12,7 @@ description = "Firmware build tools for Phase-1 uGT"
 readme = "README.md"
 requires-python = ">= 3.8, <3.12"
 dependencies = [
-  "ipbb @ https://github.com/ipbus/ipbb/archive/dev/2023a.tar.gz",
+  "ipbb @ https://github.com/ipbus/ipbb/archive/dev/2024e.tar.gz",
   "lxml==5.2.2",
 ]
 dynamic = ["version"]
