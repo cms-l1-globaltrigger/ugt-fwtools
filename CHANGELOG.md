@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.2] - 2025-03-21
+## [0.9.2] - 2025-04-08
 
 ### Changes
-- in simulation.py and sythesis.py (DefaultUgtTag)
+- in simulation.py and sythesis.py (DefaultUgtTag = "v1.30.0") 
 
 ## [0.9.1] - 2024-09-25
 
@@ -90,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - migrated scripts from `ugt_mp7_legacy/scripts` repo.
 
-[Unreleased]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.9.1...HEAD
+[Unreleased]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.9.2...HEAD
+[0.9.2]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.1...0.9.0
 [0.8.1]: https://github.com/cms-l1-globaltrigger/ugt-fwtools/compare/0.8.0...0.8.1
