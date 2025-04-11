@@ -6,11 +6,20 @@ Firmware build tools for Phase-1 uGT
 
 **Note:** this section will be subject to changes.
 
-The tools require following environment variables to be set, eg. by sourcing a bash script.
+The tools require following environment variables to be set
+for simulation and synthesis:
 
 ```bash
-export UGT_QUESTASIM_SIM_PATH=/opt/mentor/questa/2021.1_2
-export UGT_QUESTASIM_LIBS_PATH=$HOME/.questasimlibs
+export MODELSIM_ROOT=/opt/mentor/questa/2021.1_2
+export MODELSIM_PATH=${MODELSIM_ROOT}/questasim/bin
+export PATH=${MODELSIM_PATH}:${PATH}
+export MTI_VCO_MODE=64
+export MGLS_LICENSE_FILE=<license>
+export UGT_GITLAB_USER_NAME=<user name>
+export UGT_QUESTASIMLIBS_DIR=<home dir>
+export UGT_QUESTASIM_SIM_PATH=${MODELSIM_ROOT}
+export UGT_QUESTASIM_LIBS_PATH=<home dir>/questasimlibs
+export UGT_BLK_MEM_GEN_VERSION_SIM=blk_mem_gen_v8_4_5
 export UGT_VIVADO_BASE_DIR=/opt/Xilinx/Vivado
 export UGT_VIVADO_VERSION=2021.2
 source ${UGT_VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
@@ -18,8 +27,19 @@ source ${UGT_VIVADO_BASE_DIR}/${UGT_VIVADO_VERSION}/settings64.sh
 
 ## Install
 
+Install ugt-fwtools in a python environment version 3.9, 3.10, 3.11 or 3.12 (if available).
+For example:
+
 ```bash
-pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.0
+python3.9 -m venv env
+. env/bin/activate
+```
+
+Installation of ugt-fwtools (current version 0.9.2) with:
+
+```bash
+pip install --upgrade pip
+pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.2
 ```
 
 ## Preface
@@ -42,8 +62,16 @@ for XML files and test vectors.
 
 ## Simulation
 
+First compile questasimlibs (if not exist) with:
+
 ```bash
-ugt-simulate L1Menu_sample-d1.xml --tv sample_ttbar.txt
+ugt-compile-simlib --questasim $UGT_QUESTASIM_SIM_PATH/questasim --output $UGT_QUESTASIM_LIBS_PATH
+```
+
+and run simulation with:
+
+```bash
+ugt-simulate L1Menu_sample-d1.xml --tv sample_ttbar.txt --ignored
 ```
 
 Use command line option `--ugttag <tag>` to run with a different ugt tag or branch.
