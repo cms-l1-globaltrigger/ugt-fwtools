@@ -64,7 +64,7 @@ DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
 """Default URL for ugt FW repo."""
 
-DefaultUgtTag: str = "v1.28.0"
+DefaultUgtTag: str = "v1.30.0"
 """Default tag for ugt FW repo."""
 
 vhdl_snippets_names = [
@@ -317,7 +317,7 @@ def download_file_from_url(url, filename):
     urllib.request.urlretrieve(url, filename)
 
 
-def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a_url_menu, a_ipb_fw_url, a_ipb_fw_tag, a_questasimlibs, a_output, a_view_wave, a_wlf, a_tv, a_ignored):
+def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a_url_menu, a_ipb_fw_url, a_ipb_fw_tag, a_questasimlibs, a_output, a_view_wave, a_wlf, a_tv, a_ignored, a_ugt_tag):
 
     sim_dir = os.path.join(project_dir, "firmware", "sim")
 
@@ -609,6 +609,14 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
         logger.info("success!")
 
     print()
+    logger.info("=================================")
+    logger.info("Simulation was running with:")
+    logger.info("L1Menu URL: {}".format(a_url_menu))
+    logger.info("L1Menu: {}".format(a_menu))
+    logger.info("TV file: {}".format(a_tv))
+    logger.info("ugt FW tag: {}".format(a_ugt_tag))
+    logger.info("mp7 FW tag: {}".format(a_mp7_tag))
+    logger.info("=================================")
 
     # remove 'axol1tl_trigger.txt'
     cfg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "firmware", "cfg")
@@ -683,6 +691,7 @@ def main():
         args.wlf,
         args.tv,
         args.ignored,
+        args.ugttag,
       )
     finally:
         shutil.rmtree(sim_area)
