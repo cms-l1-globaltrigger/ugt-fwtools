@@ -64,7 +64,7 @@ DefaultMP7Tag: str = "v3.2.2_Vivado2021+_ugt_v4"
 DefaultUgtUrl: str = "https://github.com/cms-l1-globaltrigger/mp7_ugt_legacy.git"
 """Default URL for ugt FW repo."""
 
-DefaultUgtTag: str = "v1.30.0"
+DefaultUgtTag: str = "v1.31.2"
 """Default tag for ugt FW repo."""
 
 vhdl_snippets_names = [
@@ -529,7 +529,7 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
         else:
             line_pr = "   "+line_pr
             logger.info(line_pr)
-  
+
     logger.info("   |-----|-----|------------------------------------------------------------------|--------|--------|--------|")
 
     logger.removeHandler(handler)
@@ -549,12 +549,12 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
             if ignored_count:
                 if ignored_count > 1:
                     logger.warning(f"{ignored_count} algo mismatches ignored in module_{i}!")
-                else:                    
+                else:
                     logger.warning(f"{ignored_count} algo mismatch ignored in module_{i}!")
             if error_count:
                 if error_count > 1:
                     logger.error(f"{error_count} mismatches of algos or finor in module_{i}!")
-                else:                    
+                else:
                     logger.error(f"{error_count} mismatch of algo or finor in module_{i}!")
                 if output_set:
                     logger.error(f"@ certain bx-nr in:")
@@ -600,7 +600,7 @@ def run_simulation_questa(sim_area, project_dir, a_mp7_url, a_mp7_tag, a_menu, a
     if not success:
         if err_cnt > 1:
             logger.error(f"{err_cnt} errors occured!")
-        else:                    
+        else:
             logger.error(f"{err_cnt} error occured!")
 
     if not json_err_msg or not success:
@@ -651,7 +651,7 @@ def main():
     # Setup console logger
     if args.verbose:
     	logger.setLevel(logging.DEBUG)
-    else:    
+    else:
         logger.setLevel(logging.INFO)
 
     xml_name = args.menu_xml.split("/")[-1]
@@ -698,4 +698,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
