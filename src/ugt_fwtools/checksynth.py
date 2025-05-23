@@ -210,6 +210,9 @@ class Analyzer:
 
     def dump_utilization_report(self) -> None:
         """Dumps utilization summary table."""
+        sliceLUTs_sum = []
+        brams_sum = []
+        proc_sum = []
         logger.info("+------------------------------------------------------------------------------------+")
         logger.info("|                                                                                    |")
         logger.info("|                            Utilization Design Summary                              |")
@@ -225,10 +228,14 @@ class Analyzer:
                 ratio = f"{util.used}/{util.available}"
                 if util.site_type == "Slice LUTs":
                     row += f"| {ratio:>14} | {util.percent:>6} % "
+                    sliceLUTs_sum = ratio
                 else:
                     row += f"| {ratio:>10} | {util.percent:>6} % "
             row += "|"
             logger.info(row)
+        logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
+        sl_sum = sum(sliceLUTs_sum)
+        logger.info("+ Summary+ {sl_sum:>14}   +          +            +          +            +          +")
         logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         logger.info("")
 
