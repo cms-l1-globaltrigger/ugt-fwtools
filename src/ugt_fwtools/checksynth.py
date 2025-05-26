@@ -235,7 +235,7 @@ class Analyzer:
         sl_tot = (module_id + 1) * 433200
         sl_sum = sum(sliceLUTs_sum)
         sl_perc = sl_sum/sl_tot * 100.
-        row = f"+ Summary+ {sl_sum}/{sl_tot}+  {sl_perc:<5.2f}  +            +          +            +          +"
+        row = f"+ Summary+ {sl_sum}/{sl_tot}+  {sl_perc:<5.2f} % +            +          +            +          +"
         logger.info(row)
         logger.info("+--------+----------------+----------+------------+----------+------------+----------+")
         logger.info("")
