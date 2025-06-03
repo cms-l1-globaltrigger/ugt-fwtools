@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.5] - 2025-05-23
+## [0.9.5] - 2025-06-03
 
 ### Changes
 - added sum values to checksynth.py output
+- updated DefaultUgtTag = "v1.32.1" in simulation.py and sythesis.py 
 
 ## [0.9.4] - 2025-05-13
 
