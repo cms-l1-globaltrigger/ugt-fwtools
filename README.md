@@ -39,7 +39,7 @@ Installation of ugt-fwtools (current version 0.9.3) with:
 
 ```bash
 pip install --upgrade pip
-pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.4
+pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.5
 ```
 
 ## Preface
