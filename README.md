@@ -39,6 +39,8 @@ Installation of ugt-fwtools (current version 0.9.3) with:
 
 ```bash
 pip install --upgrade pip
+pip install "setuptools<81"  # see #15
+pip install --no-build-isolation vunit-hdl==4.6.0
 pip install git+https://github.com/cms-l1-globaltrigger/ugt-fwtools.git@0.9.5
 ```
 
